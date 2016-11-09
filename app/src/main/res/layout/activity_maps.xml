@@ -1,16 +1,49 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/map"
-    android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.grabble.android.mantas.MapsActivity">
+    android:background="#FFFFFF"
+    android:orientation="vertical">
 
-    <Button
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.grabble.android.mantas.MapsActivity" />
+
+    <ImageButton
+        android:id="@+id/bagButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:text="Bag"
-        android:padding="10dp" />
-</fragment>
+        android:src="@drawable/bag_image"
+        android:layout_gravity="bottom|left"
+        android:layout_marginLeft="5dp"
+        android:layout_marginBottom="5dp"
+        android:onClick="onBagButtonClick"
+        android:background="@null" />
+
+    <ImageButton
+        android:id="@+id/leaderboardButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/leaderboard_image"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="5dp"
+        android:onClick="onLeaderboardButtonClick"
+        android:background="@null" />
+
+    <ImageButton
+        android:id="@+id/userinfoButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/userinfo_image"
+        android:layout_gravity="bottom|right"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="5dp"
+        android:onClick="onUserinfoButtonClick"
+        android:background="@null" />
+
+
+</FrameLayout>

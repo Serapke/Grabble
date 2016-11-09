@@ -1,5 +1,6 @@
 package com.grabble.android.mantas;
 
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -12,6 +13,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -39,8 +41,8 @@ public class MapsActivity extends FragmentActivity implements
         LocationListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
-    private static final int LOCATION_REQUEST_INTERVAL = 10 * 1000;     // 10 seconds
-    private static final int LOCATION_REQUEST_FASTEST_INTERVAL = 5 * 1000; // 1 second
+    private static final int LOCATION_REQUEST_INTERVAL = 5 * 1000;     // 5 seconds
+    private static final int LOCATION_REQUEST_FASTEST_INTERVAL = 5 * 1000; // 5 second
     private static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -49,11 +51,13 @@ public class MapsActivity extends FragmentActivity implements
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private Location mLastUserLocation;
+    private Marker userLocationMarker;
 
     private GoogleMap mMap;
     private IconGenerator iconFactory;
-
     private UiSettings mUiSettings;
+
+    private List<Placemark> placemarks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,23 +66,23 @@ public class MapsActivity extends FragmentActivity implements
         setContentView(R.layout.activity_maps);
 
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setInterval(LOCATION_REQUEST_INTERVAL);
         mLocationRequest.setFastestInterval(LOCATION_REQUEST_FASTEST_INTERVAL);
     }
 
     @Override
-    protected void onResume() {
-        Log.v(TAG, "ON RESUME");
-        super.onResume();
+    protected void onStart() {
+        Log.v(TAG, "ON START");
+        super.onStart();
+
         setUpMap();
-        mGoogleApiClient.connect();
     }
 
     @Override
-    protected void onPause() {
-        Log.v(TAG, "ON PAUSE");
-        super.onPause();
+    protected void onStop() {
+        Log.v(TAG, "ON STOP");
+        super.onStop();
 
         if (mGoogleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
@@ -119,7 +123,7 @@ public class MapsActivity extends FragmentActivity implements
         mUiSettings.setMyLocationButtonEnabled(false);
 
         mGoogleApiClient.connect();
-        updateLetters();
+        loadLetters();
     }
 
     private void handleNewLocation(Location location) {
@@ -129,7 +133,11 @@ public class MapsActivity extends FragmentActivity implements
         LatLng lastLocationLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastLocationLatLng, DEFAULT_ZOOM_LEVEL));
         iconFactory.setStyle(IconGenerator.STYLE_ORANGE);
-        mMap.addMarker(
+        // remove the old user location marker, if exists
+        if (userLocationMarker != null) {
+            userLocationMarker.remove();
+        }
+        userLocationMarker = mMap.addMarker(
                 new MarkerOptions()
                         .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(makeTextWithColor("YOU", Color.WHITE))))
                         .position(lastLocationLatLng)
@@ -149,12 +157,8 @@ public class MapsActivity extends FragmentActivity implements
             return;
         }
         mLastUserLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (mLastUserLocation == null) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        }
-        else  {
-            handleNewLocation(mLastUserLocation);
-        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        handleNewLocation(mLastUserLocation);
     }
 
     @Override
@@ -218,12 +222,13 @@ public class MapsActivity extends FragmentActivity implements
     }
 
     protected void addLettersToMap(List<Placemark> placemarks) {
+        this.placemarks = placemarks;
         Log.v(TAG, "ADD LETTERS TO MAP");
         if (placemarks.isEmpty()) {
             Log.e(TAG, "No markers to add");
         }
         iconFactory.setStyle(IconGenerator.STYLE_BLUE);
-        for (Placemark placemark : placemarks) {
+        for (Placemark placemark : this.placemarks) {
             String letterString = Character.toString(placemark.getLetter());
             mMap.addMarker(new MarkerOptions()
                     .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(makeTextWithColor(letterString, Color.WHITE))))
@@ -232,8 +237,10 @@ public class MapsActivity extends FragmentActivity implements
         }
     }
 
-    private void updateLetters() {
+    private void loadLetters() {
         Log.v(TAG, "UPDATE LETTERS");
+        // if we already have letters, then just skip
+        if (placemarks != null) return;
         FetchPointsTask pointsTask = new FetchPointsTask(this, mMap, iconFactory);
         pointsTask.execute();
     }
@@ -249,5 +256,19 @@ public class MapsActivity extends FragmentActivity implements
         Log.v(TAG, "ON LOCATION CHANGED");
         mLastUserLocation = location;
         handleNewLocation(mLastUserLocation);
+    }
+
+    public void onBagButtonClick(View view) {
+        Log.v(TAG, "OPEN BAG");
+    }
+
+    public void onLeaderboardButtonClick(View view) {
+        Log.v(TAG, "OPEN LEADERBOARD");
+    }
+
+    public void onUserinfoButtonClick(View view) {
+        Log.v(TAG, "OPEN USERINFO");
+        Intent intent = new Intent(this, UserInfoActivity.class);
+        startActivity(intent);
     }
 }

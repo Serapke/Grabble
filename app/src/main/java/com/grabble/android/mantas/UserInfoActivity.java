@@ -1,9 +1,12 @@
 package com.grabble.android.mantas;
 
+import android.app.ActionBar;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -22,10 +25,22 @@ import java.util.Arrays;
 public class UserInfoActivity extends FragmentActivity {
 
 
+    UserInfoPagerAdapter userInfoPagerAdapter;
+
+    ViewPager viewPager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_info);
+
+        userInfoPagerAdapter = new UserInfoPagerAdapter(getSupportFragmentManager());
+
+        viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.setAdapter(userInfoPagerAdapter);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        tabLayout.setupWithViewPager(viewPager);
     }
 
     public class UserInfoPagerAdapter extends FragmentPagerAdapter {
@@ -41,8 +56,10 @@ public class UserInfoActivity extends FragmentActivity {
                     return new UserStatsFragment();
                 case 1:
                     return new AchievementsFragment();
-                default:
+                case 2:
                     return new WordsCompletedFragment();
+                default:
+                    return new Fragment();
             }
         }
 
@@ -58,8 +75,10 @@ public class UserInfoActivity extends FragmentActivity {
                     return "User Stats";
                 case 1:
                     return "Achievements";
-                default:
+                case 2:
                     return "Words";
+                default:
+                    return "Empty";
             }
         }
     }
@@ -71,9 +90,9 @@ public class UserInfoActivity extends FragmentActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_section_user_stats, container, false);
             ((TextView) rootView.findViewById(R.id.nickname)).setText(R.string.nicknameTEMP);
-            ((TextView) rootView.findViewById(R.id.place)).setText("13/1005");
-            ((TextView) rootView.findViewById(R.id.wordCount)).setText("10");
-            ((TextView) rootView.findViewById(R.id.letterInABagCount)).setText("22");
+            ((TextView) rootView.findViewById(R.id.place)).setText("13 / 1005");
+            ((TextView) rootView.findViewById(R.id.wordCount)).setText("Word count: 10");
+            ((TextView) rootView.findViewById(R.id.letterInABagCount)).setText("Letters in a bag: 22");
             return rootView;
         }
 
