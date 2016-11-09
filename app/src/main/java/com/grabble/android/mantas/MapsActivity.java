@@ -260,6 +260,8 @@ public class MapsActivity extends FragmentActivity implements
 
     public void onBagButtonClick(View view) {
         Log.v(TAG, "OPEN BAG");
+        Intent intent = new Intent(this, BagActivity.class);
+        startActivity(intent);
     }
 
     public void onLeaderboardButtonClick(View view) {
