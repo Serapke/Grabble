@@ -2,6 +2,6 @@
 <resources>
     <color name="colorPrimary">#3498db</color>
     <color name="colorPrimaryDark">#2c3e50</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#f39c12</color>
     <color name="GrabbleMainColor">#3498db</color>
 </resources>

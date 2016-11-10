@@ -41,7 +41,8 @@
             android:name=".LoginActivity"
             android:label="@string/title_activity_login" />
         <activity android:name=".UserInfoActivity" />
-        <activity android:name=".BagActivity"></activity>
+        <activity android:name=".BagActivity" />
+        <activity android:name=".LeaderboardActivity"></activity>
     </application>
 
 </manifest>

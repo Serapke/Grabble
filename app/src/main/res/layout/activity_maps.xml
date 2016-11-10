@@ -19,8 +19,8 @@
         android:layout_height="wrap_content"
         android:src="@drawable/bag_image"
         android:layout_gravity="bottom|left"
-        android:layout_marginLeft="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="25dp"
+        android:layout_marginBottom="10dp"
         android:onClick="onBagButtonClick"
         android:background="@null" />
 
@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/leaderboard_image"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="10dp"
         android:onClick="onLeaderboardButtonClick"
         android:background="@null" />
 
@@ -40,8 +40,8 @@
         android:layout_height="wrap_content"
         android:src="@drawable/userinfo_image"
         android:layout_gravity="bottom|right"
-        android:layout_marginRight="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginRight="25dp"
+        android:layout_marginBottom="10dp"
         android:onClick="onUserinfoButtonClick"
         android:background="@null" />
 

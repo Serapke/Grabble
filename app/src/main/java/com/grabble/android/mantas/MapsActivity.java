@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.games.leaderboard.Leaderboard;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -266,6 +267,8 @@ public class MapsActivity extends FragmentActivity implements
 
     public void onLeaderboardButtonClick(View view) {
         Log.v(TAG, "OPEN LEADERBOARD");
+        Intent intent = new Intent(this, LeaderboardActivity.class);
+        startActivity(intent);
     }
 
     public void onUserinfoButtonClick(View view) {
