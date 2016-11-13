@@ -29,20 +29,24 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".MapsActivity"
-            android:label="@string/title_activity_maps">
+            android:name=".LoginActivity"
+            android:label="@string/title_activity_signup">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".LoginActivity"
-            android:label="@string/title_activity_login" />
-        <activity android:name=".UserInfoActivity" />
-        <activity android:name=".BagActivity" />
-        <activity android:name=".LeaderboardActivity"></activity>
+            android:name=".MapsActivity"
+            android:label="@string/title_activity_maps" />
+        <activity
+            android:name=".UserInfoActivity"
+            android:label="@string/title_activity_user_info"/>
+        <activity
+            android:name=".BagActivity"
+            android:label="@string/title_activity_bag" />
+        <activity
+            android:name=".LeaderboardActivity"
+            android:label="@string/title_activity_leaderboard"/>
     </application>
-
 </manifest>

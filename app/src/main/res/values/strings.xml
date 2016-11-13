@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Grabble</string>
-    <string name="title_activity_maps">Grabble</string>
 
     <!-- TEMP Placeholders -->
     <string name="nicknameTEMP">Nickname</string>
@@ -9,22 +8,17 @@
     <string name="permission_rationale_location">Access to the location service is required to demonstrate the \'my location\' feature, which shows your current location on the map.</string>
     <string name="location_permission_denied">This sample requires location permission to enable the \'my location\' layer. Please try again and grant access to use the location.\nIf the permission has been permanently denied, it can be enabled from the System Settings &gt; Apps &gt; \'Google Maps API Demos\'.</string>
     <string name="permission_required_toast">Location permission is required for this demo.</string>
-    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_signup">Sign Up</string>
 
     <!-- Strings related to login -->
-    <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password (optional)</string>
-    <string name="action_sign_in">Sign in or register</string>
-    <string name="action_sign_in_short">Sign in</string>
-    <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="prompt_nickname">Nickname</string>
+    <string name="action_sign_up">Sign Up</string>
+    <string name="error_invalid_nickname">This nickname is too short</string>
+    <string name="error_nickname_already_exists">This nickname already exists</string>
     <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
-    <string name="section_format">Hello World from section: %1$d</string>
-    <string name="title_activity_main">MainActivity</string>
-    <string name="title_activity_user_info">UserInfoActivity</string>
-    <string name="action_settings">Settings</string>
+    <!-- Activities' titles -->
+    <string name="title_activity_maps">Grabble</string>
+    <string name="title_activity_user_info">User Information</string>
+    <string name="title_activity_bag">Bag</string>
+    <string name="title_activity_leaderboard">Leaderboard</string>
 </resources>
