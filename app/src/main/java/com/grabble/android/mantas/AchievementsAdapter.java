@@ -13,7 +13,7 @@ import android.widget.TextView;
  */
 
 public class AchievementsAdapter extends BaseAdapter {
-    private Context mContext;
+    private Context context;
     public Achievement[] achievements = {
             new Achievement("Test1", R.drawable.test1),
             new Achievement("Test2", R.drawable.test1),
@@ -23,7 +23,7 @@ public class AchievementsAdapter extends BaseAdapter {
     };
 
     public AchievementsAdapter(Context c) {
-        mContext = c;
+        context = c;
     }
 
     @Override
@@ -43,18 +43,18 @@ public class AchievementsAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View gridView;
-        LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View linearLayout;
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         if (convertView == null) {
-            gridView = inflater.inflate(R.layout.achievement_layout, null);
-            TextView textView = (TextView) gridView.findViewById(R.id.achievement_title);
-            ImageView imageView = (ImageView) gridView.findViewById(R.id.achievement_image);
+            linearLayout = inflater.inflate(R.layout.achievement_layout, null);
+            TextView textView = (TextView) linearLayout.findViewById(R.id.achievement_title);
+            ImageView imageView = (ImageView) linearLayout.findViewById(R.id.achievement_image);
             textView.setText(achievements[position].getTitle());
             imageView.setImageResource(achievements[position].getImageId());
         } else {
-            gridView = (View) convertView;
+            linearLayout = (View) convertView;
         }
-        return gridView;
+        return linearLayout;
     }
 }
