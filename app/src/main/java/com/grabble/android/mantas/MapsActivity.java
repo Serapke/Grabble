@@ -18,7 +18,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.games.leaderboard.Leaderboard;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -129,7 +128,6 @@ public class MapsActivity extends FragmentActivity implements
 
     private void handleNewLocation(Location location) {
         Log.v(TAG, "HANDLE NEW LOCATION");
-        Log.d(TAG, location.toString());
 
         LatLng lastLocationLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastLocationLatLng, DEFAULT_ZOOM_LEVEL));
@@ -159,7 +157,9 @@ public class MapsActivity extends FragmentActivity implements
         }
         mLastUserLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        handleNewLocation(mLastUserLocation);
+        if (mLastUserLocation != null) {
+            handleNewLocation(mLastUserLocation);
+        }
     }
 
     @Override
@@ -242,7 +242,7 @@ public class MapsActivity extends FragmentActivity implements
         Log.v(TAG, "UPDATE LETTERS");
         // if we already have letters, then just skip
         if (placemarks != null) return;
-        FetchPointsTask pointsTask = new FetchPointsTask(this, mMap, iconFactory);
+        FetchPointsTask pointsTask = new FetchPointsTask(this);
         pointsTask.execute();
     }
 

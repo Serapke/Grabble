@@ -1,5 +1,6 @@
 package com.grabble.android.mantas;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -7,6 +8,7 @@ import android.util.Log;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.maps.android.ui.IconGenerator;
 
+import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
@@ -29,15 +31,10 @@ public class FetchPointsTask extends AsyncTask<Void, Void, List<Placemark>> {
     private final String TAG = FetchPointsTask.class.getSimpleName();
     private final int CONNECT_TIMEOUT_SEC = 15000;
 
-    private GoogleMap map;
-    private IconGenerator iconFactory;
     private MapsActivity mapsActivity;
 
-    public FetchPointsTask(MapsActivity mapsActivity, GoogleMap map, IconGenerator iconFactory) {
-        this.map = map;
-        this.iconFactory = iconFactory;
+    public FetchPointsTask(MapsActivity mapsActivity) {
         this.mapsActivity = mapsActivity;
-        Log.d(TAG, map.toString());
     }
 
     @Override
@@ -55,7 +52,6 @@ public class FetchPointsTask extends AsyncTask<Void, Void, List<Placemark>> {
                 .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault())
                 .toLowerCase();
         Log.v(TAG, "Day of the week: " + dayOfTheWeek);
-
 
         try {
             final String POINTS_BASE_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/coursework/";
