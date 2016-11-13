@@ -2,7 +2,7 @@
     <string name="app_name">Grabble</string>
 
     <!-- TEMP Placeholders -->
-    <string name="nicknameTEMP">Nickname</string>
+    <string name="nicknameTEMP">Grabbster9000</string>
 
     <!--    Permissions    -->
     <string name="permission_rationale_location">Access to the location service is required to demonstrate the \'my location\' feature, which shows your current location on the map.</string>

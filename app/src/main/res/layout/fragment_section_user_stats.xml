@@ -24,29 +24,60 @@
 
         <TextView
             style="@style/UserStatsTextView"
-            android:layout_marginBottom="10dp"
             android:id="@+id/nickname"
-            android:text="#nickname"
             android:textSize="28sp"
             />
         <TextView
             style="@style/UserStatsTextView"
             android:layout_marginBottom="10dp"
             android:id="@+id/place"
-            android:textSize="20sp"
-            android:text="13 / 1005"
+            android:textSize="16sp"
             />
+
         <TextView
             style="@style/UserStatsTextView"
+            android:textSize="20sp"
+            android:text="Words Collected"
+            />
+        <TextView
             android:id="@+id/wordCount"
-            android:textSize="20sp"
-            android:text="Word count: 10"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:gravity="center"
+            android:textColor="#c0392b"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="5dp"
             />
+
         <TextView
             style="@style/UserStatsTextView"
-            android:id="@+id/letterInABagCount"
             android:textSize="20sp"
-            android:text="Letters in a bag: 22"
+            android:text="Best Word"/>
+        <TextView
+            android:id="@+id/bestWord"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:gravity="center"
+            android:textColor="#c0392b"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="5dp"/>
+
+        <TextView
+            style="@style/UserStatsTextView"
+            android:textSize="20sp"
+            android:text="Bag"
+            />
+        <TextView
+            android:id="@+id/letterInABagCount"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:gravity="center"
+            android:textColor="#c0392b"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="5dp"
             />
     </LinearLayout>
 

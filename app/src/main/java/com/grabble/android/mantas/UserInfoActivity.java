@@ -90,9 +90,10 @@ public class UserInfoActivity extends FragmentActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_section_user_stats, container, false);
             ((TextView) rootView.findViewById(R.id.nickname)).setText(R.string.nicknameTEMP);
-            ((TextView) rootView.findViewById(R.id.place)).setText("13 / 1005");
-            ((TextView) rootView.findViewById(R.id.wordCount)).setText("Word count: 10");
-            ((TextView) rootView.findViewById(R.id.letterInABagCount)).setText("Letters in a bag: 22");
+            ((TextView) rootView.findViewById(R.id.place)).setText("13 / 1005 participants");
+            ((TextView) rootView.findViewById(R.id.wordCount)).setText("10");
+            ((TextView) rootView.findViewById(R.id.bestWord)).setText("Zyzomys (109)");
+            ((TextView) rootView.findViewById(R.id.letterInABagCount)).setText("22 letters");
             return rootView;
         }
 
