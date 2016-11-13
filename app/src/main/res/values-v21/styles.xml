@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <style name="GrabbleTheme" parent="AppTheme">
-        <item name="android:navigationBarColor">@color/GrabbleMainColor</item>
-    </style>
-</resources>

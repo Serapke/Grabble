@@ -22,7 +22,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class UserInfoActivity extends FragmentActivity {
+public class UserInfoActivity extends AppCompatActivity {
 
 
     UserInfoPagerAdapter userInfoPagerAdapter;

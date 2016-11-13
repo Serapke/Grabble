@@ -16,7 +16,26 @@
         android:layout_marginBottom="20dp"
         android:adjustViewBounds="true"
         android:scaleType="fitXY"
+        android:contentDescription="@string/bag_image_description"
         android:src="@drawable/bag_image_large" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp"
+        android:gravity="center">
+        <EditText
+            android:id="@+id/collect_word"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/prompt_word"
+            android:inputType="textVisiblePassword|textNoSuggestions" />
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/submit_button"/>
+    </LinearLayout>
 
     <GridView
         android:id="@+id/letters"

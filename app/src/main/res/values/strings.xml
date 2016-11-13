@@ -21,4 +21,8 @@
     <string name="title_activity_user_info">User Information</string>
     <string name="title_activity_bag">Bag</string>
     <string name="title_activity_leaderboard">Leaderboard</string>
+
+    <string name="bag_image_description">Bag Image</string>
+    <string name="prompt_word">Collect a word</string>
+
 </resources>
