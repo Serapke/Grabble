@@ -31,16 +31,16 @@ public class LeaderboardActivity extends FragmentActivity {
     public static class LeaderboardFragment extends Fragment {
         private ArrayAdapter<String> leaderboardAdapter;
         private String[] leaderboardArray = {
-            " 7.        Nickname #1                                                          439",
-            " 8.        Nickname #2                                                          420",
-            " 9.        Nickname #3                                                          398",
+            " 7.        Nickname #1                                                           439",
+            " 8.        Nickname #2                                                           420",
+            " 9.        Nickname #3                                                           398",
             "10.        Nickname #4                                                          354",
-            "11.        Nickname #5                                                          333",
-            "12.        Nickname #6                                                          327",
-            "13.        Nickname #7                                                          320",
-            "14.        Nickname #8                                                          298",
-            "15.        Nickname #9                                                          209",
-            "16.        Nickname #10                                                         201"
+            "11.        Grabbster9000                                                       333",
+            "12.        Nickname #5                                                          327",
+            "13.        Nickname #6                                                          320",
+            "14.        Nickname #7                                                          298",
+            "15.        Nickname #8                                                          209",
+            "16.        Nickname #9                                                          201"
         };
         private ArrayList<String> leaderboard = new ArrayList<>(Arrays.asList(leaderboardArray));
 

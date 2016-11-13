@@ -15,11 +15,11 @@ import android.widget.TextView;
 public class AchievementsAdapter extends BaseAdapter {
     private Context context;
     public Achievement[] achievements = {
-            new Achievement("Test1", R.drawable.test1),
-            new Achievement("Test2", R.drawable.test1),
-            new Achievement("Test1", R.drawable.test1),
-            new Achievement("Test1", R.drawable.test1),
-            new Achievement("Test1", R.drawable.test1)
+            new Achievement("Locked", R.drawable.achievement_locked),
+            new Achievement("Collect same word twice", R.drawable.achievement_same_word),
+            new Achievement("Locked", R.drawable.achievement_locked),
+            new Achievement("Collect 24 words in December", R.drawable.achievement_december),
+            new Achievement("Locked", R.drawable.achievement_locked)
     };
 
     public AchievementsAdapter(Context c) {
