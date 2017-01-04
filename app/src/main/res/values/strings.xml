@@ -2,7 +2,7 @@
     <string name="app_name">Grabble</string>
 
     <!-- TEMP Placeholders -->
-    <string name="nicknameTEMP">Grabbster9000</string>
+    <string name="server_user_create">https://grabble-api.herokuapp.com/users</string>
 
     <!--    Permissions    -->
     <string name="permission_rationale_location">Access to the location service is required to demonstrate the \'my location\' feature, which shows your current location on the map.</string>
@@ -13,9 +13,30 @@
     <!-- Strings related to login -->
     <string name="prompt_nickname">Nickname</string>
     <string name="action_sign_up">Sign Up</string>
-    <string name="error_invalid_nickname">This nickname is too short</string>
+    <string name="error_invalid_nickname_size">This nickname should contain at least 4 letters!</string>
+    <string name="error_invalid_nickname_characters">The nickname should contain only letters or numbers and start with a letter.</string>
+    <string name="error_cannot_connect_to_server">Error! Cannot connect to the server</string>
     <string name="error_nickname_already_exists">This nickname already exists</string>
     <string name="error_field_required">This field is required</string>
+
+    <!-- Strings related to JSON parsing -->
+    <string name="json_user_key">user</string>
+    <string name="json_user_nickname_key">nickname</string>
+    <string name="json_user_auth_token_key">auth_token</string>
+    <string name="json_user_score_key">score</string>
+    <string name="json_user_place_key">place</string>
+    <string name="json_user_created_at_key">created_at</string>
+
+
+    <!-- Strings related to user settings -->
+    <string name="pref_user_nickname_key" translatable="false">nickname</string>
+    <string name="pref_user_nickname_default" translatable="false">Grabbster9000</string>
+    <string name="pref_user_auth_token_key" translatable="false">auth_token</string>
+    <string name="pref_user_score_key" translatable="false">score</string>
+    <string name="pref_user_place_key" translatable="false">place</string>
+    <string name="pref_user_place_default" translatable="false">0</string>
+    <string name="pref_user_created_at" translatable="false">created_at</string>
+
     <!-- Activities' titles -->
     <string name="title_activity_maps">Grabble</string>
     <string name="title_activity_user_info">User Information</string>

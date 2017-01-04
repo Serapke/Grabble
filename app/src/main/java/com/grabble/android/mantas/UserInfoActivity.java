@@ -1,14 +1,14 @@
 package com.grabble.android.mantas;
 
-import android.app.ActionBar;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,9 +88,18 @@ public class UserInfoActivity extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
+
+            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String nickname = sharedPrefs.getString(
+                    getString(R.string.pref_user_nickname_key),
+                    getString(R.string.pref_user_nickname_default));
+            String place = sharedPrefs.getString(
+                    getString(R.string.pref_user_place_key),
+                    getString(R.string.pref_user_place_default)) ;
+
             View rootView = inflater.inflate(R.layout.fragment_section_user_stats, container, false);
-            ((TextView) rootView.findViewById(R.id.nickname)).setText(R.string.nicknameTEMP);
-            ((TextView) rootView.findViewById(R.id.place)).setText("13 / 1005 participants");
+            ((TextView) rootView.findViewById(R.id.nickname)).setText(nickname);
+            ((TextView) rootView.findViewById(R.id.place)).setText(place + " / 1005 participants");
             ((TextView) rootView.findViewById(R.id.wordCount)).setText("10");
             ((TextView) rootView.findViewById(R.id.bestWord)).setText("Zyzomys (109)");
             ((TextView) rootView.findViewById(R.id.letterInABagCount)).setText("22 letters");

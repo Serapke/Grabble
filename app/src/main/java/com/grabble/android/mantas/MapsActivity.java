@@ -129,6 +129,7 @@ public class MapsActivity extends AppCompatActivity implements
 
     private void handleNewLocation(Location location) {
         Log.v(TAG, "HANDLE NEW LOCATION");
+        if (location == null) return;
 
         LatLng lastLocationLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastLocationLatLng, DEFAULT_ZOOM_LEVEL));
@@ -162,6 +163,19 @@ public class MapsActivity extends AppCompatActivity implements
             handleNewLocation(mLastUserLocation);
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (grantResults.length > 0
+                && requestCode == LOCATION_PERMISSION_REQUEST_CODE
+                && (grantResults[0] == PackageManager.PERMISSION_GRANTED
+                || grantResults[0] == PackageManager.PERMISSION_DENIED)) {
+            mGoogleApiClient.reconnect();
+        }
+    }
+
 
     @Override
     public void onConnectionSuspended(int i) {
