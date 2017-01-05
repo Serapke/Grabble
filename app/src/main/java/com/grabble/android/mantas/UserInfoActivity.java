@@ -1,6 +1,7 @@
 package com.grabble.android.mantas;
 
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
@@ -18,6 +19,8 @@ import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.grabble.android.mantas.data.GrabbleDbHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,12 +100,17 @@ public class UserInfoActivity extends AppCompatActivity {
                     getString(R.string.pref_user_place_key),
                     getString(R.string.pref_user_place_default)) ;
 
+            GrabbleDbHelper dbHelper = new GrabbleDbHelper(getContext());
+
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            long count = dbHelper.getLettersCount(db);
+
             View rootView = inflater.inflate(R.layout.fragment_section_user_stats, container, false);
             ((TextView) rootView.findViewById(R.id.nickname)).setText(nickname);
             ((TextView) rootView.findViewById(R.id.place)).setText(place + " / 1005 participants");
             ((TextView) rootView.findViewById(R.id.wordCount)).setText("10");
             ((TextView) rootView.findViewById(R.id.bestWord)).setText("Zyzomys (109)");
-            ((TextView) rootView.findViewById(R.id.letterInABagCount)).setText("22 letters");
+            ((TextView) rootView.findViewById(R.id.letterInABagCount)).setText(count + " letters");
             return rootView;
         }
 

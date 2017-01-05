@@ -1,12 +1,14 @@
 package com.grabble.android.mantas;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.location.Location;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -31,8 +33,13 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.ui.IconGenerator;
+import com.grabble.android.mantas.data.GrabbleDbHelper;
 
+import com.grabble.android.mantas.data.GrabbleContract.BagEntry;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements
@@ -117,7 +124,7 @@ public class MapsActivity extends AppCompatActivity implements
         iconFactory = new IconGenerator(this);
 
         enableMyLocation();
-        disableOnMarkerClickCentering();
+        setOnMarkerClickCollectLetter();
         mUiSettings = mMap.getUiSettings();
         mUiSettings.setScrollGesturesEnabled(false);
         mUiSettings.setZoomGesturesEnabled(false);
@@ -212,16 +219,56 @@ public class MapsActivity extends AppCompatActivity implements
         }
     }
 
-    /* Disables marker clicks */
-    private void disableOnMarkerClickCentering() {
+    private void setOnMarkerClickCollectLetter() {
         Log.v(TAG, "DISABLE ON MARKER CLICK CENTERING");
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                marker.setZIndex(1.0f);
+                // Check if the marker clicked is not the user location marker
+                if (marker.getId().equals(userLocationMarker.getId()))
+                    return false;
+
+                double distance = SphericalUtil.computeDistanceBetween(
+                        marker.getPosition(),
+                        userLocationMarker.getPosition());
+                Log.d(TAG, "User tried to collect a letter from " + distance + " meter distance");
+                /*
+                 * If the distance between user location and marker location is
+                 * less than or equal to 15 meters let user pick up the letter
+                 */
+                if (distance <= 15) {
+                    collectLetter(marker);
+                }
                 return true;
             }
         });
+    }
+
+    private void collectLetter(Marker marker) {
+        GrabbleDbHelper dbHelper = new GrabbleDbHelper(this);
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        Log.v(TAG,
+                "Picked: " + marker.getTitle() +
+                ", (" + marker.getPosition().latitude + ", " +
+                marker.getPosition().longitude + ")");
+
+        ContentValues values = new ContentValues();
+        values.put(BagEntry.COLUMN_NAME_LETTER, marker.getTitle());
+        values.put(BagEntry.COLUMN_NAME_LATITUDE, marker.getPosition().latitude);
+        values.put(BagEntry.COLUMN_NAME_LONGITUDE, marker.getPosition().longitude);
+        long _id = db.insert(BagEntry.TABLE_NAME, null, values);
+
+        db.close();
+
+        if ( _id > 0) {
+            marker.remove();
+            Toast.makeText(this, "You picked letter " + marker.getTitle(), Toast.LENGTH_SHORT).show();
+        }
+        // if for some reason couldn't save the letter to database, inform the user about the error
+        else
+            Toast.makeText(this, "Error! Cannot pick the letter", Toast.LENGTH_LONG).show();
     }
 
     // Create an instance of GoogleAPIClient
@@ -233,30 +280,69 @@ public class MapsActivity extends AppCompatActivity implements
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
-            Log.v(TAG, "Google API Client has been built");
         }
     }
 
     protected void addLettersToMap(List<Placemark> placemarks) {
         this.placemarks = placemarks;
         Log.v(TAG, "ADD LETTERS TO MAP");
-        if (placemarks.isEmpty()) {
-            Log.e(TAG, "No markers to add");
-        }
+
+        List<LatLng> collectedLettersLocations = getLettersCollectedToday();
+
+        // Paint letter markers blue
         iconFactory.setStyle(IconGenerator.STYLE_BLUE);
+
         for (Placemark placemark : this.placemarks) {
+            if (isAlreadyCollected(placemark, collectedLettersLocations)) continue;
+
             String letterString = Character.toString(placemark.getLetter());
             mMap.addMarker(new MarkerOptions()
                     .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(makeTextWithColor(letterString, Color.WHITE))))
+                    .title(letterString)
                     .position(placemark.getCoord())
                     .anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV()));
         }
     }
 
+    /* Checks if the letter at given placemark location has not been already collected today */
+    private boolean isAlreadyCollected(Placemark p, List<LatLng> collectedLettersLocations) {
+        for (LatLng collectedLetterLocation : collectedLettersLocations) {
+            double distance = SphericalUtil.computeDistanceBetween(
+                    collectedLetterLocation,
+                    p.getCoord());
+            if (distance == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<LatLng> getLettersCollectedToday() {
+        List<LatLng> locations = new ArrayList<>();
+
+        GrabbleDbHelper dbHelper = new GrabbleDbHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        Cursor cursor = dbHelper.getLettersCollectedToday(db);
+        Log.d(TAG, "Collected " + cursor.getCount() + " letters today.");
+
+        while (cursor.moveToNext()) {
+            double latitude = cursor.getDouble(cursor.getColumnIndex(BagEntry.COLUMN_NAME_LATITUDE));
+            double longitude = cursor.getDouble(cursor.getColumnIndex(BagEntry.COLUMN_NAME_LONGITUDE));
+            String timestamp = cursor.getString(cursor.getColumnIndex(BagEntry.COLUMN_NAME_DATE));
+            locations.add(new LatLng(latitude, longitude));
+            Log.v(TAG, "Collected letter today at: (" + latitude + ", " + longitude + ") on " + timestamp);
+        }
+        cursor.close();
+        db.close();
+
+        return locations;
+    }
+
     private void loadLetters() {
         Log.v(TAG, "UPDATE LETTERS");
         // if we already have letters, then just skip
-        if (placemarks != null) return;
+        if (this.placemarks != null) return;
         FetchPointsTask pointsTask = new FetchPointsTask(this);
         pointsTask.execute();
     }

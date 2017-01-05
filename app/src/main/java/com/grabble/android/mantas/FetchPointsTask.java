@@ -1,14 +1,9 @@
 package com.grabble.android.mantas;
 
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.maps.android.ui.IconGenerator;
-
-import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
@@ -21,6 +16,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Created by Mantas on 19/10/2016.
@@ -45,19 +41,15 @@ public class FetchPointsTask extends AsyncTask<Void, Void, List<Placemark>> {
         LetterMapParser letterMapParser = new LetterMapParser();
         List<Placemark> placemarks = new ArrayList<>();
 
-//        TODO: get the day of the week
-        Calendar calendar = new GregorianCalendar();
+        String dayOfWeek = getDayOfWeek();
 
-        String dayOfTheWeek = calendar
-                .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault())
-                .toLowerCase();
-        Log.v(TAG, "Day of the week: " + dayOfTheWeek);
+        Log.v(TAG, "Day of the week: " + dayOfWeek);
 
         try {
             final String POINTS_BASE_URL = "http://www.inf.ed.ac.uk/teaching/courses/selp/coursework/";
 
             Uri builtUri = Uri.parse(POINTS_BASE_URL).buildUpon()
-                    .appendPath(dayOfTheWeek + ".kml")
+                    .appendPath(dayOfWeek + ".kml")
                     .build();
 
             URL url = new URL(builtUri.toString());
@@ -94,6 +86,14 @@ public class FetchPointsTask extends AsyncTask<Void, Void, List<Placemark>> {
             return placemarks;
         }
         return null;
+    }
+
+    private String getDayOfWeek() {
+        Calendar calendar = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT"));
+
+        return calendar
+                .getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault())
+                .toLowerCase();
     }
 
     @Override
