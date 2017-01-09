@@ -152,8 +152,6 @@ public class MapsActivity extends AppCompatActivity implements
                         .anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV()));
     }
 
-
-
     @Override
     public void onConnected(Bundle connectionHint) {
         Log.v(TAG, "ON CONNECTED");
@@ -329,7 +327,7 @@ public class MapsActivity extends AppCompatActivity implements
         while (cursor.moveToNext()) {
             double latitude = cursor.getDouble(cursor.getColumnIndex(BagEntry.COLUMN_NAME_LATITUDE));
             double longitude = cursor.getDouble(cursor.getColumnIndex(BagEntry.COLUMN_NAME_LONGITUDE));
-            String timestamp = cursor.getString(cursor.getColumnIndex(BagEntry.COLUMN_NAME_DATE));
+            String timestamp = cursor.getString(cursor.getColumnIndex(BagEntry.COLUMN_NAME_COLLECTION_DATE));
             locations.add(new LatLng(latitude, longitude));
             Log.v(TAG, "Collected letter today at: (" + latitude + ", " + longitude + ") on " + timestamp);
         }

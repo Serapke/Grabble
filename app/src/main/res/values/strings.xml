@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Grabble</string>
+
 
     <!-- TEMP Placeholders -->
     <string name="server_user_create">https://grabble-api.herokuapp.com/users</string>
@@ -27,6 +27,12 @@
     <string name="json_user_place_key">place</string>
     <string name="json_user_created_at_key">created_at</string>
 
+    <!-- Strings related to Toast outputs -->
+    <string name="toast_too_many_letters">Oops! Too many letters. You only need 7</string>
+    <string name="toast_not_enough_individual_letters">Oops! Seems you don't have enough</string>
+    <string name="toast_not_enough_letters">Oops! Too few letters. You need 7 to submit</string>
+    <string name="toast_successful_word_collection">Hooray! Successfully collected a word: </string>
+    <string name="toast_no_such_word">Oops! No such word on a dictionary</string>
 
     <!-- Strings related to user settings -->
     <string name="pref_user_nickname_key" translatable="false">nickname</string>
@@ -45,5 +51,12 @@
 
     <string name="bag_image_description">Bag Image</string>
     <string name="prompt_word">Collect a word</string>
+
+    <!-- Others -->
+    <string name="app_name">Grabble</string>
+    <string name="date_format">yyyy-MM-dd HH:mm:ss</string>
+    <string name="column_count">count</string>
+    <string name="dictionary_filename">dictionary.txt</string>
+    <string name="action_submit">Submit</string>
 
 </resources>

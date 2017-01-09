@@ -28,14 +28,27 @@
             android:id="@+id/collect_word"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
+            android:cursorVisible="false"
             android:hint="@string/prompt_word"
             android:inputType="textVisiblePassword|textNoSuggestions" />
         <ImageButton
+            android:id="@+id/delete_character"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@null"
-            android:src="@drawable/submit_button"/>
+            android:src="@drawable/delete"/>
     </LinearLayout>
+
+    <Button
+        android:id="@+id/submit_word"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:background="#3498DB"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp"
+        android:text="@string/action_submit"
+        android:layout_gravity="center"/>
 
     <GridView
         android:id="@+id/letters"
@@ -45,7 +58,5 @@
         style="@style/UserStatsInfo"
         android:numColumns="4"
         android:orientation="vertical">
-
     </GridView>
-
 </LinearLayout>

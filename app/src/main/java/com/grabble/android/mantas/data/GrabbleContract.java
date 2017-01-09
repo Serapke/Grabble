@@ -16,6 +16,15 @@ public class GrabbleContract {
         public static final String COLUMN_NAME_LETTER = "letter";
         public static final String COLUMN_NAME_LATITUDE = "latitude";
         public static final String COLUMN_NAME_LONGITUDE = "longitude";
-        public static final String COLUMN_NAME_DATE = "date";
+        public static final String COLUMN_NAME_COLLECTION_DATE = "collection_date";
+        public static final String COLUMN_NAME_USAGE_DATE = "usage_date";
+    }
+
+    public static final class DictionaryEntry implements BaseColumns {
+        public static final String TABLE_NAME = "dictionary";
+
+        public static final String COLUMN_WORD = "word";
+        public static final String COLUMN_SCORE = "score";
+        public static final String COLUMN_TIMES_COLLECTED = "times_collected";
     }
 }

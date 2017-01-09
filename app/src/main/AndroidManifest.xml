@@ -45,6 +45,7 @@
             android:label="@string/title_activity_user_info"/>
         <activity
             android:name=".BagActivity"
+            android:windowSoftInputMode="stateHidden"
             android:label="@string/title_activity_bag" />
         <activity
             android:name=".LeaderboardActivity"
