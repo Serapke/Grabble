@@ -44,6 +44,8 @@
     <string name="pref_user_place_key" translatable="false">place</string>
     <string name="pref_user_place_default" translatable="false">0</string>
     <string name="pref_user_created_at" translatable="false">created_at</string>
+    <string name="pref_number_of_users_key" translatable="false">number_of_users</string>
+    <string name="pref_number_of_users_default" translatable="false">0</string>
 
     <!-- Activities' titles -->
     <string name="title_activity_maps">Grabble</string>

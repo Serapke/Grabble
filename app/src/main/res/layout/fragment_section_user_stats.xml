@@ -70,7 +70,7 @@
             android:text="Bag"
             />
         <TextView
-            android:id="@+id/letterInABagCount"
+            android:id="@+id/letterInBagCount"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:gravity="center"

@@ -1,7 +1,9 @@
 package com.grabble.android.mantas;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -104,5 +106,15 @@ public class FetchLeaderboardTask extends AsyncTask<Void, Void, List<User>> {
                 leaderboardAdapter.add(user);
             }
         }
+        updateNumberOfUsersPref(result.size());
+    }
+
+    private void updateNumberOfUsersPref(Integer size) {
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putString(
+                context.getString(R.string.pref_number_of_users_key),
+                size.toString());
+        editor.commit();
     }
 }

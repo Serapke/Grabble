@@ -94,21 +94,24 @@ public class UserLoginTask extends AsyncTask<Void, Void, Integer> {
     private void saveUserInfo(JSONObject json) throws JSONException {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(loginActivity);
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(loginActivity.getString(
-                R.string.pref_user_nickname_key),
+        editor.putString(
+                loginActivity.getString(R.string.pref_user_nickname_key),
                 json.getString(loginActivity.getString(R.string.json_user_nickname_key)));
-        editor.putString(loginActivity.getString(
-                R.string.pref_user_auth_token_key),
+        editor.putString(
+                loginActivity.getString(R.string.pref_user_auth_token_key),
                 json.getString(loginActivity.getString(R.string.json_user_auth_token_key)));
-        editor.putInt(loginActivity.getString(
-                R.string.pref_user_score_key),
+        editor.putInt(
+                loginActivity.getString(R.string.pref_user_score_key),
                 json.getInt(loginActivity.getString(R.string.json_user_score_key)));
-        editor.putString(loginActivity.getString(
-                R.string.pref_user_place_key),
+        editor.putString(
+                loginActivity.getString(R.string.pref_user_place_key),
                 json.getString(loginActivity.getString(R.string.json_user_place_key)));
         editor.putString(loginActivity.getString(
                 R.string.pref_user_created_at),
                 json.getString(loginActivity.getString(R.string.json_user_created_at_key)));
+        editor.putString(
+                loginActivity.getString(R.string.pref_number_of_users_key),
+                json.getString(loginActivity.getString(R.string.json_user_place_key)));
         editor.commit();
     }
 

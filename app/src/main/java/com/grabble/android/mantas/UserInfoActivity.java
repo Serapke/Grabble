@@ -1,6 +1,7 @@
 package com.grabble.android.mantas;
 
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -22,9 +23,6 @@ import android.widget.Toast;
 
 import com.grabble.android.mantas.data.GrabbleContract.DictionaryEntry;
 import com.grabble.android.mantas.data.GrabbleDbHelper;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class UserInfoActivity extends AppCompatActivity {
 
@@ -51,6 +49,11 @@ public class UserInfoActivity extends AppCompatActivity {
 
         dbHelper = new GrabbleDbHelper(this);
         db = dbHelper.getReadableDatabase();
+    }
+
+    protected  void onStop() {
+        super.onStop();
+        db.close();
     }
 
     public class UserInfoPagerAdapter extends FragmentPagerAdapter {
@@ -103,22 +106,44 @@ public class UserInfoActivity extends AppCompatActivity {
             String nickname = sharedPrefs.getString(
                     getString(R.string.pref_user_nickname_key),
                     getString(R.string.pref_user_nickname_default));
-            String place = sharedPrefs.getString(
-                    getString(R.string.pref_user_place_key),
-                    getString(R.string.pref_user_place_default)) ;
-
-            GrabbleDbHelper dbHelper = new GrabbleDbHelper(getContext());
-
-            SQLiteDatabase db = dbHelper.getReadableDatabase();
-            long count = dbHelper.getLettersCount(db);
+            String placeText = getPlaceText(sharedPrefs);
+            Integer collectedWordsCount = dbHelper.getCollectedWordsCount(db);
+            String bestWordText = getBestWordText();
+            String letterInBagCountText = getLetterInBagCount();
 
             View rootView = inflater.inflate(R.layout.fragment_section_user_stats, container, false);
             ((TextView) rootView.findViewById(R.id.nickname)).setText(nickname);
-            ((TextView) rootView.findViewById(R.id.place)).setText(place + " / 1005 participants");
-            ((TextView) rootView.findViewById(R.id.wordCount)).setText("10");
-            ((TextView) rootView.findViewById(R.id.bestWord)).setText("Zyzomys (109)");
-            ((TextView) rootView.findViewById(R.id.letterInABagCount)).setText(count + " letters");
+            ((TextView) rootView.findViewById(R.id.place)).setText(placeText);
+            ((TextView) rootView.findViewById(R.id.wordCount)).setText(collectedWordsCount.toString());
+            ((TextView) rootView.findViewById(R.id.bestWord)).setText(bestWordText);
+            ((TextView) rootView.findViewById(R.id.letterInBagCount)).setText(letterInBagCountText);
+
             return rootView;
+        }
+
+        private String getLetterInBagCount() {
+            long lettersCount = dbHelper.getLettersCount(db);
+            return String.format("%d letters", lettersCount);
+        }
+
+        private String getBestWordText() {
+            Cursor cursor = dbHelper.getBestWord(db);
+            cursor.moveToFirst();
+            String bestWord = cursor.getString(cursor.getColumnIndex(DictionaryEntry.COLUMN_WORD));
+            Integer bestWordScore = cursor.getInt(cursor.getColumnIndex(DictionaryEntry.COLUMN_SCORE));
+            cursor.close();
+            return String.format("%s (%d)", bestWord, bestWordScore);
+        }
+
+        private String getPlaceText(SharedPreferences sharedPrefs) {
+            String place = sharedPrefs.getString(
+                    getString(R.string.pref_user_place_key),
+                    getString(R.string.pref_user_place_default));
+            String numberOfUsers = sharedPrefs.getString(
+                    getString(R.string.pref_number_of_users_key),
+                    getString(R.string.pref_number_of_users_default)
+            );
+            return String.format("%s / %s participants", place, numberOfUsers);
         }
 
     }

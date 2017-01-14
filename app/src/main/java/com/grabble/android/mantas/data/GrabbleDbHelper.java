@@ -114,22 +114,31 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
                 "count(" + BagEntry.COLUMN_NAME_LETTER + ") AS count " +
                 "FROM " + BagEntry.TABLE_NAME +
                 " WHERE " + BagEntry.COLUMN_NAME_USAGE_DATE + " IS NULL" +
-                " GROUP BY " + BagEntry.COLUMN_NAME_LETTER;
+                " GROUP BY " + BagEntry.COLUMN_NAME_LETTER + ";";
         Cursor cursor = db.rawQuery(query, null);
 
         return cursor;
     }
 
     public long getLettersCount(SQLiteDatabase db) {
-        long count = DatabaseUtils.queryNumEntries(db, BagEntry.TABLE_NAME);
-        return count;
+        String selection = BagEntry.COLUMN_NAME_USAGE_DATE + " IS NULL";
+        Cursor cursor = db.query(
+                BagEntry.TABLE_NAME,
+                null,
+                selection,
+                null,
+                null,
+                null,
+                null
+        );
+        return cursor.getCount();
     }
 
     public Cursor getLettersCollectedToday(SQLiteDatabase db) {
         String query =
                 "SELECT * FROM " + BagEntry.TABLE_NAME +
                 " WHERE DATE(" + BagEntry.COLUMN_NAME_COLLECTION_DATE + ")" +
-                " >= DATE('now', 'start of day')";
+                " >= DATE('now', 'start of day');";
         Cursor cursor = db.rawQuery(query, null);
 
         return cursor;
@@ -208,6 +217,28 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
                 null
         );
 
+        return cursor;
+    }
+
+    public Integer getCollectedWordsCount(SQLiteDatabase db) {
+        String query =
+                "SELECT sum(" + DictionaryEntry.COLUMN_TIMES_COLLECTED + ") AS count " +
+                "FROM " + DictionaryEntry.TABLE_NAME + ";";
+
+        Cursor cursor = db.rawQuery(query, null);
+        cursor.moveToFirst();
+
+        return cursor.getInt(cursor.getColumnIndex(context.getString(R.string.column_count)));
+    }
+
+    public Cursor getBestWord(SQLiteDatabase db) {
+        String query =
+                "SELECT * FROM " + DictionaryEntry.TABLE_NAME +
+                " WHERE " + DictionaryEntry.COLUMN_TIMES_COLLECTED + " > ? " +
+                " ORDER BY " + DictionaryEntry.COLUMN_SCORE + " DESC;";
+        String[] selectionArgs = { "0" };
+
+        Cursor cursor = db.rawQuery(query, selectionArgs);
         return cursor;
     }
 }
