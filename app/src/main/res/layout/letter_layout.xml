@@ -20,9 +20,8 @@
         android:gravity="top|end"
         android:textSize="17sp"
         android:textStyle="bold"
-        android:layout_marginEnd="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginTop="-20dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="-10dp"
         android:textColor="#d35400"
         android:id="@+id/letter_count"/>
 
