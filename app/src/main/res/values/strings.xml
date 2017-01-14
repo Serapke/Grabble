@@ -1,10 +1,9 @@
 <resources>
 
-
     <!-- TEMP Placeholders -->
     <string name="server_user_create">https://grabble-api.herokuapp.com/users</string>
     <string name="server_get_leaderboard">https://grabble-api.herokuapp.com/leaderboard</string>
-
+    <string name="server_update_place">https://grabble-api.herokuapp.com/update_place</string>
 
     <!--    Permissions    -->
     <string name="permission_rationale_location">Access to the location service is required to demonstrate the \'my location\' feature, which shows your current location on the map.</string>
@@ -34,7 +33,7 @@
     <string name="toast_too_many_letters">Oops! Too many letters. You only need 7</string>
     <string name="toast_not_enough_individual_letters">Oops! Seems you don\'t have enough</string>
     <string name="toast_not_enough_letters">Oops! Too few letters. You need 7 to submit</string>
-    <string name="toast_successful_word_collection">Hooray! Successfully collected a word: </string>
+    <string name="toast_successful_word_collection">Hooray! Successfully collected a word:</string>
     <string name="toast_no_such_word">Oops! No such word on a dictionary</string>
 
     <!-- Strings related to user settings -->

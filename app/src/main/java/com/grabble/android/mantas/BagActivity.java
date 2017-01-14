@@ -148,14 +148,15 @@ public class BagActivity extends FragmentActivity {
                 if (dbHelper.isValidWord(db, word)) {
                     removeLettersFromBag(word);
                     updateWordTimesCollected(word);
-                    updateScore(word);
+                    Integer score = updateScore(word);
+                    updatePlace(score);
 
                     lettersAdapter.changeCursor(dbHelper.getAllLetterCountsInBag(db));
                     editText.setText("");
 
                     Toast.makeText(
                             getContext(),
-                            getString(R.string.toast_successful_word_collection) + word,
+                            getString(R.string.toast_successful_word_collection) + " " + word,
                             Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(
@@ -166,14 +167,21 @@ public class BagActivity extends FragmentActivity {
             }
         }
 
-        private void updateScore(String word) {
+        private void updatePlace(Integer score) {
+            UserUpdatePlaceTask userUpdatePlaceTask = new UserUpdatePlaceTask(getContext(), score);
+            userUpdatePlaceTask.execute();
+        }
+
+        private Integer updateScore(String word) {
             SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
             SharedPreferences.Editor editor = sharedPrefs.edit();
-            Integer score = sharedPrefs.getInt(
+            Integer oldScore = sharedPrefs.getInt(
                     getString(R.string.pref_user_score_key),
                     0);
-            editor.putInt(getString(R.string.pref_user_score_key), score + dbHelper.getWordScore(db, word));
+            Integer newScore = oldScore + dbHelper.getWordScore(db, word);
+            editor.putInt(getString(R.string.pref_user_score_key), newScore);
             editor.commit();
+            return newScore;
         }
 
         /**
