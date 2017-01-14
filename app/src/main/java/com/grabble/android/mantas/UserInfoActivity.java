@@ -9,17 +9,18 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.grabble.android.mantas.data.GrabbleContract.DictionaryEntry;
 import com.grabble.android.mantas.data.GrabbleDbHelper;
 
 import java.util.ArrayList;
@@ -31,6 +32,9 @@ public class UserInfoActivity extends AppCompatActivity {
     UserInfoPagerAdapter userInfoPagerAdapter;
 
     ViewPager viewPager;
+
+    private static SQLiteDatabase db;
+    private static GrabbleDbHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,9 @@ public class UserInfoActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.setupWithViewPager(viewPager);
+
+        dbHelper = new GrabbleDbHelper(this);
+        db = dbHelper.getReadableDatabase();
     }
 
     public class UserInfoPagerAdapter extends FragmentPagerAdapter {
@@ -139,18 +146,8 @@ public class UserInfoActivity extends AppCompatActivity {
     }
 
     public static class WordsCompletedFragment extends Fragment {
-        private ArrayAdapter<String> wordsAdapter;
-        private String[] wordsArray = {
-                "Aaronic",
-                "Ababdeh",
-                "abacate",
-                "abacist",
-                "abactor",
-                "Abadite",
-                "abaiser",
-                "abalone"
-        };
-        private ArrayList<String> words = new ArrayList<>(Arrays.asList(wordsArray));
+
+        private SimpleCursorAdapter wordsAdapter;
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -158,21 +155,23 @@ public class UserInfoActivity extends AppCompatActivity {
 
             View view = inflater.inflate(R.layout.fragment_section_words, container, false);
 
-            wordsAdapter = new ArrayAdapter<String>(
-                    getActivity(),
+            wordsAdapter = new SimpleCursorAdapter(
+                    getContext(),
                     R.layout.list_item_word,
-                    R.id.list_item_word_textview,
-                    words
+                    dbHelper.getCollectedWords(db),
+                    new String[] {
+                            DictionaryEntry.COLUMN_WORD,
+                            DictionaryEntry.COLUMN_SCORE,
+                            DictionaryEntry.COLUMN_TIMES_COLLECTED },
+                    new int[] {
+                            R.id.word,
+                            R.id.score,
+                            R.id.count },
+                    0
             );
 
             ListView listView = (ListView) view.findViewById(R.id.words);
             listView.setAdapter(wordsAdapter);
-
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                    Toast.makeText(getActivity().getApplicationContext(), "" + position, Toast.LENGTH_SHORT).show();
-                }
-            });
 
             return view;
         }

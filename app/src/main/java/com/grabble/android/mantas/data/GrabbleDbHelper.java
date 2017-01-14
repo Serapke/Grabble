@@ -50,6 +50,7 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
 
         final String SQL_CREATE_DICTIONARY_TABLE =
             "CREATE TABLE " + DictionaryEntry.TABLE_NAME + " (" +
+            DictionaryEntry._ID + " INTEGER PRIMARY KEY," +
             DictionaryEntry.COLUMN_WORD + " TEXT NOT NULL," +
             DictionaryEntry.COLUMN_SCORE + " INTEGER NOT NULL," +
             DictionaryEntry.COLUMN_TIMES_COLLECTED + " INTEGER DEFAULT 0" +
@@ -191,5 +192,22 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         cursor.moveToFirst();
 
         return cursor.getInt(cursor.getColumnIndex(DictionaryEntry.COLUMN_SCORE));
+    }
+
+    public Cursor getCollectedWords(SQLiteDatabase db) {
+        String selection = DictionaryEntry.COLUMN_TIMES_COLLECTED + " > ?";
+        String[] selectionArgs = { "0" };
+
+        Cursor cursor = db.query(
+                DictionaryEntry.TABLE_NAME,
+                null,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+        );
+
+        return cursor;
     }
 }

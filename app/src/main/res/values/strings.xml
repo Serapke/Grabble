@@ -62,6 +62,11 @@
     <string name="column_header_nickname">Nickname</string>
     <string name="column_header_score">Score</string>
 
+    <!-- Strings related to Words table -->
+    <string name="column_header_word">Word</string>
+    <string name="column_header_word_score">Score</string>
+    <string name="column_header_count">Count</string>
+
     <!-- Others -->
     <string name="app_name">Grabble</string>
     <string name="date_format">yyyy-MM-dd HH:mm:ss</string>
