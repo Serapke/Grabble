@@ -3,6 +3,8 @@
 
     <!-- TEMP Placeholders -->
     <string name="server_user_create">https://grabble-api.herokuapp.com/users</string>
+    <string name="server_get_leaderboard">https://grabble-api.herokuapp.com/leaderboard</string>
+
 
     <!--    Permissions    -->
     <string name="permission_rationale_location">Access to the location service is required to demonstrate the \'my location\' feature, which shows your current location on the map.</string>
@@ -21,6 +23,7 @@
 
     <!-- Strings related to JSON parsing -->
     <string name="json_user_key">user</string>
+    <string name="json_user_id_key">id</string>
     <string name="json_user_nickname_key">nickname</string>
     <string name="json_user_auth_token_key">auth_token</string>
     <string name="json_user_score_key">score</string>
@@ -29,7 +32,7 @@
 
     <!-- Strings related to Toast outputs -->
     <string name="toast_too_many_letters">Oops! Too many letters. You only need 7</string>
-    <string name="toast_not_enough_individual_letters">Oops! Seems you don't have enough</string>
+    <string name="toast_not_enough_individual_letters">Oops! Seems you don\'t have enough</string>
     <string name="toast_not_enough_letters">Oops! Too few letters. You need 7 to submit</string>
     <string name="toast_successful_word_collection">Hooray! Successfully collected a word: </string>
     <string name="toast_no_such_word">Oops! No such word on a dictionary</string>
@@ -51,6 +54,14 @@
 
     <string name="bag_image_description">Bag Image</string>
     <string name="prompt_word">Collect a word</string>
+
+    <!-- Strings related to app colors -->
+    <string name="color_light_blue">#3498DB</string>
+
+    <!-- Strings related to Leaderboard table -->
+    <string name="column_header_place">#</string>
+    <string name="column_header_nickname">Nickname</string>
+    <string name="column_header_score">Score</string>
 
     <!-- Others -->
     <string name="app_name">Grabble</string>
