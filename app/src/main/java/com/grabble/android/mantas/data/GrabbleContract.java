@@ -27,4 +27,12 @@ public class GrabbleContract {
         public static final String COLUMN_SCORE = "score";
         public static final String COLUMN_TIMES_COLLECTED = "times_collected";
     }
+
+    public static final class AchievementsEntry implements BaseColumns {
+        public static final String TABLE_NAME = "achievements";
+
+        public static final String COLUMN_TITLE = "title";
+        public static final String COLUMN_IMAGE_ID = "image_id";
+        public static final String COLUMN_UNLOCKED = "unlocked";
+    }
 }

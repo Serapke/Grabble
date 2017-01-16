@@ -8,27 +8,30 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.List;
+
 /**
  * Created by Mantas on 09/11/2016.
  */
 
 public class AchievementsAdapter extends BaseAdapter {
     private Context context;
-    public Achievement[] achievements = {
-            new Achievement("Locked", R.drawable.achievement_locked),
-            new Achievement("Collect same word twice", R.drawable.achievement_same_word),
-            new Achievement("Locked", R.drawable.achievement_locked),
-            new Achievement("Collect 24 words in December", R.drawable.achievement_december),
-            new Achievement("Locked", R.drawable.achievement_locked)
-    };
+    private LayoutInflater inflater;
+    public List<Achievement> achievements;
 
-    public AchievementsAdapter(Context c) {
-        context = c;
+    public AchievementsAdapter(Context c, List<Achievement> achievements, Long size) {
+        this.context = c;
+        this.inflater = LayoutInflater.from(context);
+        this.achievements = achievements;
+        // Show 'Lock' for locked achievements
+        while (achievements.size() < size) {
+            achievements.add(new Achievement("Locked", R.drawable.achievement_locked));
+        }
     }
 
     @Override
     public int getCount() {
-        return achievements.length;
+        return achievements.size();
     }
 
     @Override
@@ -43,18 +46,31 @@ public class AchievementsAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View linearLayout;
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        ViewHolder holder;
 
         if (convertView == null) {
-            linearLayout = inflater.inflate(R.layout.achievement_layout, null);
-            TextView textView = (TextView) linearLayout.findViewById(R.id.achievement_title);
-            ImageView imageView = (ImageView) linearLayout.findViewById(R.id.achievement_image);
-            textView.setText(achievements[position].getTitle());
-            imageView.setImageResource(achievements[position].getImageId());
+            convertView = inflater.inflate(R.layout.achievement_layout, parent, false);
+            holder = new ViewHolder();
+            holder.text = (TextView) convertView.findViewById(R.id.achievement_title);
+            holder.icon = (ImageView) convertView.findViewById(R.id.achievement_image);
+
+            convertView.setTag(holder);
         } else {
-            linearLayout = (View) convertView;
+            holder = (ViewHolder) convertView.getTag();
         }
-        return linearLayout;
+
+        holder.text.setText(achievements.get(position).getTitle());
+        holder.icon.setImageResource(achievements.get(position).getImageId());
+
+        return convertView;
+    }
+
+    /**
+     * Using ViewHolder for performance reasons.
+     * More info: https://dl.google.com/googleio/2010/android-world-of-listview-android.pdf
+     */
+    static class ViewHolder {
+        TextView text;
+        ImageView icon;
     }
 }

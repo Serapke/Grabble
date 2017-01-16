@@ -67,6 +67,8 @@ public class MapsActivity extends AppCompatActivity implements
 
     private List<Placemark> placemarks;
 
+    private static AchievementsUtil achv;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "ON CREATE");
@@ -80,6 +82,7 @@ public class MapsActivity extends AppCompatActivity implements
         buildGoogleApiClient();
 
         iconFactory = new IconGenerator(this);
+        achv = new AchievementsUtil(this);
     }
 
     @Override
@@ -254,6 +257,8 @@ public class MapsActivity extends AppCompatActivity implements
         long _id = db.insert(BagEntry.TABLE_NAME, null, values);
 
         db.close();
+
+        achv.checkLetterAchievements(marker.getPosition());
 
         if ( _id > 0) {
             marker.remove();

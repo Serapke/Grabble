@@ -25,8 +25,6 @@ import com.grabble.android.mantas.data.GrabbleContract.DictionaryEntry;
 import com.grabble.android.mantas.data.GrabbleDbHelper;
 
 public class UserInfoActivity extends AppCompatActivity {
-
-
     UserInfoPagerAdapter userInfoPagerAdapter;
 
     ViewPager viewPager;
@@ -101,7 +99,6 @@ public class UserInfoActivity extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-
             SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
             String nickname = sharedPrefs.getString(
                     getString(R.string.pref_user_nickname_key),
@@ -157,7 +154,10 @@ public class UserInfoActivity extends AppCompatActivity {
             View view = inflater.inflate(R.layout.fragment_section_achievements, container, false);
 
             GridView gridView = (GridView) view.findViewById(R.id.achievements);
-            gridView.setAdapter(new AchievementsAdapter(getActivity().getApplicationContext()));
+            gridView.setAdapter(new AchievementsAdapter(
+                    getContext(),
+                    dbHelper.getUnlockedAchievements(db),
+                    dbHelper.getAchievementsCount(db)));
 
             gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View v, int position, long id) {

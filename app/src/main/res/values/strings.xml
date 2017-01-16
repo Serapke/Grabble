@@ -6,9 +6,9 @@
     <string name="server_update_place">https://grabble-api.herokuapp.com/update_place</string>
 
     <!--    Permissions    -->
-    <string name="permission_rationale_location">Access to the location service is required to demonstrate the \'my location\' feature, which shows your current location on the map.</string>
-    <string name="location_permission_denied">This sample requires location permission to enable the \'my location\' layer. Please try again and grant access to use the location.\nIf the permission has been permanently denied, it can be enabled from the System Settings &gt; Apps &gt; \'Google Maps API Demos\'.</string>
-    <string name="permission_required_toast">Location permission is required for this demo.</string>
+    <string name="permission_rationale_location">Access to the location service is required to user this app.</string>
+    <string name="location_permission_denied">This sample requires location permission. Please try again and grant access to use the location.\nIf the permission has been permanently denied, it can be enabled from the System Settings &gt; Apps &gt; \'Grabble\'.</string>
+    <string name="permission_required_toast">Location permission is required for this app.</string>
     <string name="title_activity_signup">Sign Up</string>
 
     <!-- Strings related to login -->
@@ -33,7 +33,7 @@
     <string name="toast_too_many_letters">Oops! Too many letters. You only need 7</string>
     <string name="toast_not_enough_individual_letters">Oops! Seems you don\'t have enough</string>
     <string name="toast_not_enough_letters">Oops! Too few letters. You need 7 to submit</string>
-    <string name="toast_successful_word_collection">Hooray! Successfully collected a word:</string>
+    <string name="toast_successful_word_collection">Hooray! Collected a word:</string>
     <string name="toast_no_such_word">Oops! No such word on a dictionary</string>
 
     <!-- Strings related to user settings -->
@@ -68,6 +68,33 @@
     <string name="column_header_word">Word</string>
     <string name="column_header_word_score">Score</string>
     <string name="column_header_count">Count</string>
+
+    <!-- Achievements -->
+    <string name="achievement_same_word">Collect same word twice</string>
+    <string name="achievement_100_words">Collect 100 words</string>
+    <string name="achievement_word_score_over_70">Collect a word with 70+ score</string>
+
+    <string name="achievement_first">Become best player</string>
+    <string name="achievement_top_10">Reach best players Top 10</string>
+
+    <string name="achievement_alphabet">Collect all alphabet</string>
+    <string name="achievement_night">Collect 20 letters at night</string>
+
+    <string name="achievement_christmas">Collect a word on Christmas</string>
+    <string name="achievement_easter">Collect a word on Easter</string>
+
+    <string name="achievement_letter_near_starbucks">Collect letter near Starbucks</string>
+    <string name="achievement_letter_near_forrest_hill">Collect letter near Forrest Hill</string>
+    <string name="achievement_letter_near_appleton_tower">Collect letter near Appleton Tower</string>
+    <string name="achievement_letter_near_lidl">Collect letter near Lidl</string>
+    <string name="achievement_letter_near_library">Collect letter near Main Library</string>
+    <string name="achievement_letter_near_teviot">Collect letter near Teviot Row House</string>
+
+    <string name="achievement_student">Collect STUDENT</string>
+    <string name="achievement_weekend">Collect WEEKEND</string>
+    <string name="achievement_holiday">Collect HOLIDAY</string>
+
+
 
     <!-- Others -->
     <string name="app_name">Grabble</string>

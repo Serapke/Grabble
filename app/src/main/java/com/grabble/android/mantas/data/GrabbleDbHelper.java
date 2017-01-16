@@ -8,13 +8,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.grabble.android.mantas.Achievement;
 import com.grabble.android.mantas.LetterPointValues;
 import com.grabble.android.mantas.R;
 import com.grabble.android.mantas.data.GrabbleContract.BagEntry;
 import com.grabble.android.mantas.data.GrabbleContract.DictionaryEntry;
+import com.grabble.android.mantas.data.GrabbleContract.AchievementsEntry;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -46,7 +53,7 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
             BagEntry.COLUMN_NAME_LONGITUDE + " REAL NOT NULL," +
             BagEntry.COLUMN_NAME_COLLECTION_DATE + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
             BagEntry.COLUMN_NAME_USAGE_DATE + " TIMESTAMP" +
-            " );";
+            ");";
 
         final String SQL_CREATE_DICTIONARY_TABLE =
             "CREATE TABLE " + DictionaryEntry.TABLE_NAME + " (" +
@@ -54,12 +61,60 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
             DictionaryEntry.COLUMN_WORD + " TEXT NOT NULL," +
             DictionaryEntry.COLUMN_SCORE + " INTEGER NOT NULL," +
             DictionaryEntry.COLUMN_TIMES_COLLECTED + " INTEGER DEFAULT 0" +
-            " );";
+            ");";
+
+        final String SQL_CREATE_ACHIEVEMENTS_TABLE =
+            "CREATE TABLE " + AchievementsEntry.TABLE_NAME + " (" +
+            AchievementsEntry._ID + " INTEGER PRIMARY KEY," +
+            AchievementsEntry.COLUMN_TITLE + " TEXT NOT NULL," +
+            AchievementsEntry.COLUMN_IMAGE_ID + " INTEGER NOT NULL," +
+            AchievementsEntry.COLUMN_UNLOCKED + " INTEGER DEFAULT 0" +
+            ");";
 
         db.execSQL(SQL_CREATE_BAG_TABLE);
 
         db.execSQL(SQL_CREATE_DICTIONARY_TABLE);
         initializeDictionary(db);
+
+        db.execSQL(SQL_CREATE_ACHIEVEMENTS_TABLE);
+        initializeAchievements(db);
+    }
+
+    private void initializeAchievements(SQLiteDatabase db) {
+        HashMap<String, Integer> achievements = new HashMap<>();
+        achievements.put(context.getString(R.string.achievement_same_word), R.drawable.achievement_same_word);
+        achievements.put(context.getString(R.string.achievement_100_words), R.drawable.achievement_100_words);
+        achievements.put(context.getString(R.string.achievement_word_score_over_70), R.drawable.achievement_word_score_over_70);
+
+        achievements.put(context.getString(R.string.achievement_letter_near_starbucks), R.drawable.achievement_letter_near_starbucks);
+        achievements.put(context.getString(R.string.achievement_letter_near_forrest_hill), R.drawable.achievement_letter_near_forrest_hill);
+        achievements.put(context.getString(R.string.achievement_letter_near_lidl), R.drawable.achievement_letter_near_lidl);
+        achievements.put(context.getString(R.string.achievement_letter_near_library), R.drawable.achievement_letter_near_library);
+        achievements.put(context.getString(R.string.achievement_letter_near_teviot), R.drawable.achievement_letter_near_teviot);
+        achievements.put(context.getString(R.string.achievement_letter_near_appleton_tower), R.drawable.achievement_letter_near_appleton_tower);
+
+        achievements.put(context.getString(R.string.achievement_student), R.drawable.achievement_student);
+        achievements.put(context.getString(R.string.achievement_weekend), R.drawable.achievement_weekend);
+        achievements.put(context.getString(R.string.achievement_holiday), R.drawable.achievement_holiday);
+
+        achievements.put(context.getString(R.string.achievement_first), R.drawable.achievement_first);
+        achievements.put(context.getString(R.string.achievement_top_10), R.drawable.achievement_top_10);
+
+        achievements.put(context.getString(R.string.achievement_alphabet), R.drawable.achievement_alphabet);
+        achievements.put(context.getString(R.string.achievement_night), R.drawable.achievement_night);
+
+        achievements.put(context.getString(R.string.achievement_easter), R.drawable.achievement_easter);
+        achievements.put(context.getString(R.string.achievement_christmas), R.drawable.achievement_christmas);
+
+        Iterator it = achievements.entrySet().iterator();
+
+        while (it.hasNext()) {
+            Map.Entry<String, Integer> pair = (Map.Entry) it.next();
+            ContentValues values = new ContentValues();
+            values.put(AchievementsEntry.COLUMN_TITLE, pair.getKey());
+            values.put(AchievementsEntry.COLUMN_IMAGE_ID, pair.getValue());
+            db.insert(AchievementsEntry.TABLE_NAME, null, values);
+        }
     }
 
     /**
@@ -120,7 +175,25 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         return cursor;
     }
 
-    public long getLettersCount(SQLiteDatabase db) {
+    public Integer getDistinctLettersCount(SQLiteDatabase db) {
+        Integer result;
+        String selection = BagEntry.COLUMN_NAME_USAGE_DATE + " IS NULL";
+        Cursor cursor = db.query(
+                BagEntry.TABLE_NAME,
+                null,
+                selection,
+                null,
+                BagEntry.COLUMN_NAME_LETTER,
+                null,
+                null
+        );
+        result = cursor.getCount();
+        cursor.close();
+        return result;
+    }
+
+    public Integer getLettersCount(SQLiteDatabase db) {
+        Integer result;
         String selection = BagEntry.COLUMN_NAME_USAGE_DATE + " IS NULL";
         Cursor cursor = db.query(
                 BagEntry.TABLE_NAME,
@@ -131,7 +204,9 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
                 null,
                 null
         );
-        return cursor.getCount();
+        result = cursor.getCount();
+        cursor.close();
+        return result;
     }
 
     public Cursor getLettersCollectedToday(SQLiteDatabase db) {
@@ -241,4 +316,77 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(query, selectionArgs);
         return cursor;
     }
+
+    public Achievement getAchievement(SQLiteDatabase db, String title) {
+        String selection = AchievementsEntry.COLUMN_TITLE + " = ?";
+        String[] selectionArgs = { title };
+        Cursor cursor = db.query(
+                AchievementsEntry.TABLE_NAME,
+                null,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null,
+                null
+        );
+        cursor.moveToFirst();
+        Integer imageId = cursor.getInt(cursor.getColumnIndex(AchievementsEntry.COLUMN_IMAGE_ID));
+        Integer unlocked = cursor.getInt(cursor.getColumnIndex(AchievementsEntry.COLUMN_UNLOCKED));
+
+        return new Achievement(title, imageId, unlocked==1);
+    }
+
+    public void unlockAchievement(SQLiteDatabase db, String title) {
+        ContentValues values = new ContentValues();
+        values.put(AchievementsEntry.COLUMN_UNLOCKED, 1);
+
+        String selection = AchievementsEntry.COLUMN_TITLE + " = ?";
+        String[] selectionArgs = { title };
+
+        db.update(
+                AchievementsEntry.TABLE_NAME,
+                values,
+                selection,
+                selectionArgs
+        );
+    }
+
+    public List<Achievement> getUnlockedAchievements(SQLiteDatabase db) {
+        List<Achievement> result = new ArrayList<>();
+        String selection = AchievementsEntry.COLUMN_UNLOCKED + " = 1";
+
+        Cursor cursor = db.query(
+                AchievementsEntry.TABLE_NAME,
+                null,
+                selection,
+                null,
+                null,
+                null,
+                null
+        );
+        while (cursor.moveToNext()) {
+            String title = cursor.getString(cursor.getColumnIndex(AchievementsEntry.COLUMN_TITLE));
+            Integer imageId = cursor.getInt(cursor.getColumnIndex(AchievementsEntry.COLUMN_IMAGE_ID));
+            result.add(new Achievement(title, imageId, true));
+        }
+        return result;
+    }
+
+    public Long getAchievementsCount(SQLiteDatabase db) {
+        Long count = DatabaseUtils.queryNumEntries(db, AchievementsEntry.TABLE_NAME);
+        return count;
+    }
+
+    public Integer getLettersCollectedAtNightCount(SQLiteDatabase db) {
+        String query =
+                "SELECT * FROM " + BagEntry.TABLE_NAME +
+                " WHERE TIME(" + BagEntry.COLUMN_NAME_COLLECTION_DATE + ")" +
+                " > TIME('22:00', 'localtime') OR TIME(" + BagEntry.COLUMN_NAME_COLLECTION_DATE + ")" +
+                " < TIME('06:00', 'localtime');";
+        Cursor cursor = db.rawQuery(query, null);
+
+        return cursor.getCount();
+    }
+
 }

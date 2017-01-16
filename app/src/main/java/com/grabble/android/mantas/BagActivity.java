@@ -36,6 +36,7 @@ public class BagActivity extends FragmentActivity {
 
     private static SQLiteDatabase db;
     private static GrabbleDbHelper dbHelper;
+    private static AchievementsUtil achv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,7 @@ public class BagActivity extends FragmentActivity {
         }
         dbHelper = new GrabbleDbHelper(this);
         db = dbHelper.getReadableDatabase();
+        achv = new AchievementsUtil(this);
     }
 
     protected  void onStop() {
@@ -138,6 +140,10 @@ public class BagActivity extends FragmentActivity {
         }
 
         private void submitWord(String word) {
+            Integer wordScore;
+            Integer wordTimesCollected;
+            Integer userScore;
+
             if (editText.getText().length() != 7) {
                 Toast.makeText(
                         getContext(),
@@ -146,18 +152,17 @@ public class BagActivity extends FragmentActivity {
             } else {
                 Log.d(TAG, "Trying to submit a word: " + word);
                 if (dbHelper.isValidWord(db, word)) {
+                    wordScore = dbHelper.getWordScore(db, word);
+                    wordTimesCollected = dbHelper.getNumberOfTimesWordWasCollected(db, word)+1;
+                    userScore = updateScore(wordScore);
+
                     removeLettersFromBag(word);
-                    updateWordTimesCollected(word);
-                    Integer score = updateScore(word);
-                    updatePlace(score);
+                    updateWordTimesCollected(word, wordTimesCollected);
+                    updatePlace(userScore);
+                    achv.checkWordAchievements(word, wordScore, wordTimesCollected);
 
-                    lettersAdapter.changeCursor(dbHelper.getAllLetterCountsInBag(db));
-                    editText.setText("");
+                    prepareWordCollectedView(word);
 
-                    Toast.makeText(
-                            getContext(),
-                            getString(R.string.toast_successful_word_collection) + " " + word,
-                            Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(
                             getContext(),
@@ -167,18 +172,27 @@ public class BagActivity extends FragmentActivity {
             }
         }
 
+        private void prepareWordCollectedView(String word) {
+            lettersAdapter.changeCursor(dbHelper.getAllLetterCountsInBag(db));
+            editText.setText("");
+            Toast.makeText(
+                    getContext(),
+                    getString(R.string.toast_successful_word_collection) + " " + word,
+                    Toast.LENGTH_SHORT).show();
+        }
+
         private void updatePlace(Integer score) {
             UserUpdatePlaceTask userUpdatePlaceTask = new UserUpdatePlaceTask(getContext(), score);
             userUpdatePlaceTask.execute();
         }
 
-        private Integer updateScore(String word) {
+        private Integer updateScore(Integer wordScore) {
             SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
             SharedPreferences.Editor editor = sharedPrefs.edit();
             Integer oldScore = sharedPrefs.getInt(
                     getString(R.string.pref_user_score_key),
                     0);
-            Integer newScore = oldScore + dbHelper.getWordScore(db, word);
+            Integer newScore = oldScore + wordScore;
             editor.putInt(getString(R.string.pref_user_score_key), newScore);
             editor.commit();
             return newScore;
@@ -187,11 +201,11 @@ public class BagActivity extends FragmentActivity {
         /**
          * Update the number of times the word was collected
          */
-        private void updateWordTimesCollected(String word) {
+        private void updateWordTimesCollected(String word, Integer wordTimesCollected) {
             ContentValues values = new ContentValues();
             values.put(
                     DictionaryEntry.COLUMN_TIMES_COLLECTED,
-                    dbHelper.getNumberOfTimesWordWasCollected(db, word)+1
+                    wordTimesCollected
             );
 
             String selection = DictionaryEntry.COLUMN_WORD + " = ?";
