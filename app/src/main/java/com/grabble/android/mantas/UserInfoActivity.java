@@ -123,12 +123,17 @@ public class UserInfoActivity extends AppCompatActivity {
         }
 
         private String getBestWordText() {
+            String result;
             Cursor cursor = dbHelper.getBestWord(db);
-            cursor.moveToFirst();
-            String bestWord = cursor.getString(cursor.getColumnIndex(DictionaryEntry.COLUMN_WORD));
-            Integer bestWordScore = cursor.getInt(cursor.getColumnIndex(DictionaryEntry.COLUMN_SCORE));
+            if (cursor.moveToFirst()) {
+                String bestWord = cursor.getString(cursor.getColumnIndexOrThrow(DictionaryEntry.COLUMN_WORD));
+                Integer bestWordScore = cursor.getInt(cursor.getColumnIndex(DictionaryEntry.COLUMN_SCORE));
+                result = String.format("%s (%d)", bestWord, bestWordScore);
+            } else {
+                result = "-";
+            }
             cursor.close();
-            return String.format("%s (%d)", bestWord, bestWordScore);
+            return result;
         }
 
         private String getPlaceText(SharedPreferences sharedPrefs) {
