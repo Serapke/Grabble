@@ -73,18 +73,28 @@ public class MapsActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(LOCATION_REQUEST_INTERVAL);
-        mLocationRequest.setFastestInterval(LOCATION_REQUEST_FASTEST_INTERVAL);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        buildGoogleApiClient();
+
+        iconFactory = new IconGenerator(this);
     }
 
     @Override
     protected void onStart() {
         Log.v(TAG, "ON START");
         super.onStart();
+        mGoogleApiClient.connect();
+    }
 
-        setUpMap();
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mGoogleApiClient.isConnected()) {
+            startLocationUpdates();
+        }
     }
 
     @Override
@@ -98,14 +108,14 @@ public class MapsActivity extends AppCompatActivity implements
         }
     }
 
-    // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-    public void setUpMap() {
-        Log.v(TAG, "SET UP MAP");
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
-        buildGoogleApiClient();
+    protected void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION, true);
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
 
     /**
@@ -121,21 +131,20 @@ public class MapsActivity extends AppCompatActivity implements
     public void onMapReady(GoogleMap googleMap) {
         Log.v(TAG, "ON MAP READY");
         mMap = googleMap;
-        iconFactory = new IconGenerator(this);
 
-        enableMyLocation();
         setOnMarkerClickCollectLetter();
+        setMapUiSettings();
+        loadLetters();
+    }
+
+    private void setMapUiSettings() {
         mUiSettings = mMap.getUiSettings();
         mUiSettings.setScrollGesturesEnabled(false);
         mUiSettings.setZoomGesturesEnabled(false);
         mUiSettings.setMyLocationButtonEnabled(false);
-
-        mGoogleApiClient.connect();
-        loadLetters();
     }
 
     private void handleNewLocation(Location location) {
-        Log.v(TAG, "HANDLE NEW LOCATION");
         if (location == null) return;
 
         LatLng lastLocationLatLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -154,25 +163,27 @@ public class MapsActivity extends AppCompatActivity implements
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        Log.v(TAG, "ON CONNECTED");
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "ACCESS_FINE_LOCATION permission not granted!");
-            PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION, true);
-            return;
-        }
-        mLastUserLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        if (mLastUserLocation != null) {
+        Log.v(TAG, "Connected to GoogleApiClient");
+
+        if (mLastUserLocation == null) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
+                        android.Manifest.permission.ACCESS_FINE_LOCATION, true);
+                return;
+            }
+            mLastUserLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             handleNewLocation(mLastUserLocation);
         }
+        startLocationUpdates();
     }
 
+    /**
+     *  Reconnects GoogleApiClient until user gives permission to ACCESS_FINE_LOCATION
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
         if (grantResults.length > 0
                 && requestCode == LOCATION_PERMISSION_REQUEST_CODE
                 && (grantResults[0] == PackageManager.PERMISSION_GRANTED
@@ -198,22 +209,6 @@ public class MapsActivity extends AppCompatActivity implements
             }
         } else {
             Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
-        }
-    }
-
-    /**
-     * Enables the My Location layer if the fine location permission has been granted.
-     */
-    private void enableMyLocation() {
-        Log.v(TAG, "ENABLE MY LOCATION");
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission to access the location is missing.
-            PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION, true);
-        } else if (mMap != null) {
-            // Access to the location has been granted to the app.
-            mMap.setMyLocationEnabled(true);
         }
     }
 
@@ -272,13 +267,19 @@ public class MapsActivity extends AppCompatActivity implements
     // Create an instance of GoogleAPIClient
     protected synchronized void buildGoogleApiClient() {
         Log.v(TAG, "BUILD GOOGLE API CLIENT");
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
-        }
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        createLocationRequest();
+    }
+
+    private void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(LOCATION_REQUEST_INTERVAL);
+        mLocationRequest.setFastestInterval(LOCATION_REQUEST_FASTEST_INTERVAL);
     }
 
     protected void addLettersToMap(List<Placemark> placemarks) {
@@ -338,7 +339,7 @@ public class MapsActivity extends AppCompatActivity implements
     }
 
     private void loadLetters() {
-        Log.v(TAG, "UPDATE LETTERS");
+        Log.v(TAG, "Load letters");
         // if we already have letters, then just skip
         if (this.placemarks != null) return;
         FetchPointsTask pointsTask = new FetchPointsTask(this);
