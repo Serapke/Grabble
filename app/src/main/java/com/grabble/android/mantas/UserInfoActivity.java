@@ -1,5 +1,6 @@
 package com.grabble.android.mantas;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -37,7 +38,7 @@ public class UserInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_info);
 
-        userInfoPagerAdapter = new UserInfoPagerAdapter(getSupportFragmentManager());
+        userInfoPagerAdapter = new UserInfoPagerAdapter(getSupportFragmentManager(), this);
 
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.setAdapter(userInfoPagerAdapter);
@@ -56,19 +57,26 @@ public class UserInfoActivity extends AppCompatActivity {
 
     public class UserInfoPagerAdapter extends FragmentPagerAdapter {
 
-        public UserInfoPagerAdapter(FragmentManager fm) {
+        final int PAGE_COUNT = 3;
+
+        private String tabTitles[] = new String[] { "User Stats", "Achievements", "Words"};
+
+        private Context context;
+
+        public UserInfoPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
+            this.context = context;
         }
 
         @Override
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return new UserStatsFragment();
+                    return Fragment.instantiate(context, UserStatsFragment.class.getName());
                 case 1:
-                    return new AchievementsFragment();
+                    return Fragment.instantiate(context, AchievementsFragment.class.getName());
                 case 2:
-                    return new WordsCompletedFragment();
+                    return Fragment.instantiate(context, WordsCompletedFragment.class.getName());
                 default:
                     return new Fragment();
             }
@@ -76,21 +84,12 @@ public class UserInfoActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 3;
+            return PAGE_COUNT;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "User Stats";
-                case 1:
-                    return "Achievements";
-                case 2:
-                    return "Words";
-                default:
-                    return "Empty";
-            }
+            return tabTitles[position];
         }
     }
 
