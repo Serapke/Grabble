@@ -10,7 +10,6 @@ import android.graphics.Color;
 import android.location.Location;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -31,6 +30,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
@@ -38,10 +38,16 @@ import com.google.maps.android.ui.IconGenerator;
 import com.grabble.android.mantas.data.GrabbleDbHelper;
 
 import com.grabble.android.mantas.data.GrabbleContract.BagEntry;
+import com.grabble.android.mantas.utils.AchievementsUtil;
+import com.grabble.android.mantas.utils.PermissionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ *  Shows the map with today's letters and provides functionality for
+ *  collecting letters.
+ */
 public class MapsActivity extends AppCompatActivity implements
         OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -56,22 +62,23 @@ public class MapsActivity extends AppCompatActivity implements
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final float DEFAULT_ZOOM_LEVEL = 20.0f;
 
-    private GoogleApiClient mGoogleApiClient;
-    private LocationRequest mLocationRequest;
+    private GoogleApiClient googleApiClient;
+    private LocationRequest locationRequest;
     private Location mLastUserLocation;
     private Marker userLocationMarker;
 
-    private GoogleMap mMap;
+    private GoogleMap map;
     private IconGenerator iconFactory;
-    private UiSettings mUiSettings;
 
     private List<Placemark> placemarks;
+
+    GrabbleDbHelper dbHelper;
+    SQLiteDatabase db;
 
     private static AchievementsUtil achv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.v(TAG, "ON CREATE");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
@@ -80,35 +87,52 @@ public class MapsActivity extends AppCompatActivity implements
         mapFragment.getMapAsync(this);
 
         buildGoogleApiClient();
-
         iconFactory = new IconGenerator(this);
-        achv = new AchievementsUtil(this);
     }
 
     @Override
     protected void onStart() {
-        Log.v(TAG, "ON START");
         super.onStart();
-        mGoogleApiClient.connect();
+        googleApiClient.connect();
+        dbHelper = new GrabbleDbHelper(this);
+        db = dbHelper.getWritableDatabase();
+        achv = new AchievementsUtil(this, db);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (mGoogleApiClient.isConnected()) {
+        if (googleApiClient.isConnected()) {
             startLocationUpdates();
         }
     }
 
     @Override
     protected void onStop() {
-        Log.v(TAG, "ON STOP");
         super.onStop();
 
-        if (mGoogleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-            mGoogleApiClient.disconnect();
+        if (googleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+            googleApiClient.disconnect();
         }
+        db.close();
+    }
+
+    // Create an instance of GoogleAPIClient
+    protected synchronized void buildGoogleApiClient() {
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        createLocationRequest();
+    }
+
+    private void createLocationRequest() {
+        locationRequest = new LocationRequest();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(LOCATION_REQUEST_INTERVAL);
+        locationRequest.setFastestInterval(LOCATION_REQUEST_FASTEST_INTERVAL);
     }
 
     protected void startLocationUpdates() {
@@ -118,7 +142,7 @@ public class MapsActivity extends AppCompatActivity implements
                     android.Manifest.permission.ACCESS_FINE_LOCATION, true);
             return;
         }
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
     }
 
     /**
@@ -132,53 +156,21 @@ public class MapsActivity extends AppCompatActivity implements
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        Log.v(TAG, "ON MAP READY");
-        mMap = googleMap;
+        map = googleMap;
 
         setOnMarkerClickCollectLetter();
         setMapUiSettings();
         loadLetters();
     }
 
+    /**
+     *  Disables scroll and zoom gestures and 'My Location' button
+     */
     private void setMapUiSettings() {
-        mUiSettings = mMap.getUiSettings();
-        mUiSettings.setScrollGesturesEnabled(false);
-        mUiSettings.setZoomGesturesEnabled(false);
-        mUiSettings.setMyLocationButtonEnabled(false);
-    }
-
-    private void handleNewLocation(Location location) {
-        if (location == null) return;
-
-        LatLng lastLocationLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastLocationLatLng, DEFAULT_ZOOM_LEVEL));
-        iconFactory.setStyle(IconGenerator.STYLE_ORANGE);
-        // remove the old user location marker, if exists
-        if (userLocationMarker != null) {
-            userLocationMarker.remove();
-        }
-        userLocationMarker = mMap.addMarker(
-                new MarkerOptions()
-                        .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(makeTextWithColor("YOU", Color.WHITE))))
-                        .position(lastLocationLatLng)
-                        .anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV()));
-    }
-
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        Log.v(TAG, "Connected to GoogleApiClient");
-
-        if (mLastUserLocation == null) {
-            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
-                PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
-                        android.Manifest.permission.ACCESS_FINE_LOCATION, true);
-                return;
-            }
-            mLastUserLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            handleNewLocation(mLastUserLocation);
-        }
-        startLocationUpdates();
+        UiSettings uiSettings = map.getUiSettings();
+        uiSettings.setScrollGesturesEnabled(false);
+        uiSettings.setZoomGesturesEnabled(false);
+        uiSettings.setMyLocationButtonEnabled(false);
     }
 
     /**
@@ -191,10 +183,24 @@ public class MapsActivity extends AppCompatActivity implements
                 && requestCode == LOCATION_PERMISSION_REQUEST_CODE
                 && (grantResults[0] == PackageManager.PERMISSION_GRANTED
                 || grantResults[0] == PackageManager.PERMISSION_DENIED)) {
-            mGoogleApiClient.reconnect();
+            googleApiClient.reconnect();
         }
     }
 
+    @Override
+    public void onConnected(Bundle connectionHint) {
+        if (mLastUserLocation == null) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
+                        android.Manifest.permission.ACCESS_FINE_LOCATION, true);
+                return;
+            }
+            mLastUserLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+            handleNewLocation(mLastUserLocation);
+        }
+        startLocationUpdates();
+    }
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -215,36 +221,57 @@ public class MapsActivity extends AppCompatActivity implements
         }
     }
 
+    /**
+     *  Updates user location marker on the map
+     */
+    private void handleNewLocation(Location location) {
+        if (location == null) return;
+
+        LatLng lastLocationLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(lastLocationLatLng, DEFAULT_ZOOM_LEVEL));
+        iconFactory.setStyle(IconGenerator.STYLE_ORANGE);
+        // remove the old user location marker, if exists
+        if (userLocationMarker != null) {
+            userLocationMarker.remove();
+        }
+        userLocationMarker = map.addMarker(
+                new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(makeTextWithColor("YOU", Color.WHITE))))
+                        .position(lastLocationLatLng)
+                        .anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV()));
+    }
+
     private void setOnMarkerClickCollectLetter() {
-        Log.v(TAG, "DISABLE ON MARKER CLICK CENTERING");
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                // Check if the marker clicked is not the user location marker
-                if (marker.getId().equals(userLocationMarker.getId()))
-                    return false;
+            // Check if the marker clicked is not the user location marker
+            if (marker.getId().equals(userLocationMarker.getId()))
+                return false;
 
-                double distance = SphericalUtil.computeDistanceBetween(
-                        marker.getPosition(),
-                        userLocationMarker.getPosition());
-                Log.d(TAG, "User tried to collect a letter from " + distance + " meter distance");
-                /*
-                 * If the distance between user location and marker location is
-                 * less than or equal to 15 meters let user pick up the letter
-                 */
-                if (distance <= 15) {
-                    collectLetter(marker);
-                }
-                return true;
+            double distance = SphericalUtil.computeDistanceBetween(
+                    marker.getPosition(),
+                    userLocationMarker.getPosition());
+            Log.d(TAG, "User tried to collect a letter from " + distance + " meter distance");
+            /*
+             * If the marker is visible on the screen, user can collect the corresponding
+             * letter.
+             */
+            LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
+            if (bounds.contains(marker.getPosition())) {
+                collectLetter(marker);
+            } else {
+                Toast.makeText(MapsActivity.this, "You are too far from the letter!", Toast.LENGTH_SHORT).show();
+            }
+            return true;
             }
         });
     }
 
+    /**
+     *  Save the collected letter and the metadata (position, timestamp) to the bag table
+     */
     private void collectLetter(Marker marker) {
-        GrabbleDbHelper dbHelper = new GrabbleDbHelper(this);
-
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
         Log.v(TAG,
                 "Picked: " + marker.getTitle() +
                 ", (" + marker.getPosition().latitude + ", " +
@@ -256,8 +283,6 @@ public class MapsActivity extends AppCompatActivity implements
         values.put(BagEntry.COLUMN_NAME_LONGITUDE, marker.getPosition().longitude);
         long _id = db.insert(BagEntry.TABLE_NAME, null, values);
 
-        db.close();
-
         achv.checkLetterAchievements(marker.getPosition());
 
         if ( _id > 0) {
@@ -266,30 +291,16 @@ public class MapsActivity extends AppCompatActivity implements
         }
         // if for some reason couldn't save the letter to database, inform the user about the error
         else
-            Toast.makeText(this, "Error! Cannot pick the letter", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Error! Cannot pick the letter ", Toast.LENGTH_LONG).show();
     }
 
-    // Create an instance of GoogleAPIClient
-    protected synchronized void buildGoogleApiClient() {
-        Log.v(TAG, "BUILD GOOGLE API CLIENT");
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        createLocationRequest();
-    }
-
-    private void createLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(LOCATION_REQUEST_INTERVAL);
-        mLocationRequest.setFastestInterval(LOCATION_REQUEST_FASTEST_INTERVAL);
-    }
-
+    /**
+     *  A callback function from FetchPointsTask, which populates map with
+     *  retrieved letter markers.
+     */
     protected void addLettersToMap(List<Placemark> placemarks) {
+        Log.v(TAG, "Adding letters to map...");
         this.placemarks = placemarks;
-        Log.v(TAG, "ADD LETTERS TO MAP");
 
         List<LatLng> collectedLettersLocations = getLettersCollectedToday();
 
@@ -300,7 +311,7 @@ public class MapsActivity extends AppCompatActivity implements
             if (isAlreadyCollected(placemark, collectedLettersLocations)) continue;
 
             String letterString = Character.toString(placemark.getLetter());
-            mMap.addMarker(new MarkerOptions()
+            map.addMarker(new MarkerOptions()
                     .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(makeTextWithColor(letterString, Color.WHITE))))
                     .title(letterString)
                     .position(placemark.getCoord())
@@ -309,12 +320,14 @@ public class MapsActivity extends AppCompatActivity implements
     }
 
     /* Checks if the letter at given placemark location has not been already collected today */
-    private boolean isAlreadyCollected(Placemark p, List<LatLng> collectedLettersLocations) {
+    protected boolean isAlreadyCollected(Placemark p, List<LatLng> collectedLettersLocations) {
+        if (collectedLettersLocations == null) return false;
         for (LatLng collectedLetterLocation : collectedLettersLocations) {
             double distance = SphericalUtil.computeDistanceBetween(
                     collectedLetterLocation,
                     p.getCoord());
-            if (distance == 0) {
+            if (distance == 0.00) {
+                collectedLettersLocations.remove(collectedLetterLocation);
                 return true;
             }
         }
@@ -344,7 +357,7 @@ public class MapsActivity extends AppCompatActivity implements
     }
 
     private void loadLetters() {
-        Log.v(TAG, "Load letters");
+        Log.v(TAG, "Started loading letters...");
         // if we already have letters, then just skip
         if (this.placemarks != null) return;
         FetchPointsTask pointsTask = new FetchPointsTask(this);
@@ -359,25 +372,21 @@ public class MapsActivity extends AppCompatActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.v(TAG, "ON LOCATION CHANGED");
         mLastUserLocation = location;
         handleNewLocation(mLastUserLocation);
     }
 
     public void onBagButtonClick(View view) {
-        Log.v(TAG, "OPEN BAG");
         Intent intent = new Intent(this, BagActivity.class);
         startActivity(intent);
     }
 
     public void onLeaderboardButtonClick(View view) {
-        Log.v(TAG, "OPEN LEADERBOARD");
         Intent intent = new Intent(this, LeaderboardActivity.class);
         startActivity(intent);
     }
 
-    public void onUserinfoButtonClick(View view) {
-        Log.v(TAG, "OPEN USERINFO");
+    public void onUserInfoButtonClick(View view) {
         Intent intent = new Intent(this, UserInfoActivity.class);
         startActivity(intent);
     }
