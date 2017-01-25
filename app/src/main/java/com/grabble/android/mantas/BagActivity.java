@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.grabble.android.mantas.data.GrabbleDbHelper;
 import com.grabble.android.mantas.data.GrabbleContract.BagEntry;
 import com.grabble.android.mantas.data.GrabbleContract.DictionaryEntry;
+import com.grabble.android.mantas.utils.AchievementsUtil;
 
 
 import java.text.SimpleDateFormat;
@@ -30,6 +31,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
+/**
+ *  Shows the user his/hers collected letters and provides
+ *  the functionality to collect a word.
+ */
 public class BagActivity extends FragmentActivity {
 
     public static final String TAG = BagActivity.class.getSimpleName();
@@ -48,8 +53,8 @@ public class BagActivity extends FragmentActivity {
                     .commit();
         }
         dbHelper = new GrabbleDbHelper(this);
-        db = dbHelper.getReadableDatabase();
-        achv = new AchievementsUtil(this);
+        db = dbHelper.getWritableDatabase();
+        achv = new AchievementsUtil(this, db);
     }
 
     protected  void onStop() {
@@ -76,7 +81,7 @@ public class BagActivity extends FragmentActivity {
             editText = (EditText) view.findViewById(R.id.collect_word);
             editText.setTextIsSelectable(true);
 
-            GridView gridView = (GridView) view.findViewById(R.id.letters);
+            GridView bagView = (GridView) view.findViewById(R.id.letters);
             lettersAdapter = new SimpleCursorAdapter(getContext(),
                     R.layout.letter_layout,
                     dbHelper.getAllLetterCountsInBag(db),
@@ -84,33 +89,8 @@ public class BagActivity extends FragmentActivity {
                     new int[] { R.id.letter_value, R.id.letter_count },
                     0
             );
-            gridView.setAdapter(lettersAdapter);
-            gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent, View v, int i, long id) {
-                    if (editText.getText().length() >= 7) {
-                        Toast.makeText(
-                                getContext(),
-                                getString(R.string.toast_too_many_letters),
-                                Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    Cursor cursor = (Cursor) lettersAdapter.getItem(i);
-                    String letter = cursor.getString(cursor.getColumnIndex(BagEntry.COLUMN_NAME_LETTER));
-                    Integer count = cursor.getInt(cursor.getColumnIndex(getString(R.string.column_count)));
-
-                    // Checks if user has enough individual letters to compose the word
-                    if (usedLettersCounts.get(letter) >= count) {
-                        Toast.makeText(
-                                getContext(),
-                                getString(R.string.toast_not_enough_individual_letters) + letter + "'s",
-                                Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    editText.setText(editText.getText() + letter);
-                    usedLettersCounts.put(letter, usedLettersCounts.get(letter)+1);
-                }
-            });
+            bagView.setAdapter(lettersAdapter);
+            setOnLetterClickListener(bagView);
 
             ImageButton deleteCharacterButton = (ImageButton) view.findViewById(R.id.delete_character);
             deleteCharacterButton.setOnClickListener(new View.OnClickListener() {
@@ -131,6 +111,53 @@ public class BagActivity extends FragmentActivity {
             return view;
         }
 
+        /**
+         *  On letter clicked, append the letter to the end of the word in editText
+         *
+         *  The letter is not appended if:
+         *      - Word in editText already consists of 7 letters
+         *      - User doesn't have enough individual letters in the bag (already
+         *        used all individual letters to build an existing word in editText
+         */
+        public void setOnLetterClickListener(GridView bagView) {
+            bagView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View v, int i, long id) {
+                    // Checks if the editText already consists of 7 letter word
+                    if (editText.getText().length() >= 7) {
+                        Toast.makeText(
+                                getContext(),
+                                getString(R.string.toast_too_many_letters),
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    Cursor cursor = (Cursor) lettersAdapter.getItem(i);
+                    String letter = cursor.getString(cursor.getColumnIndex(BagEntry.COLUMN_NAME_LETTER));
+                    Integer count = cursor.getInt(cursor.getColumnIndex(getString(R.string.column_count)));
+
+                    // Checks if user has enough individual letters to compose the word
+                    if (usedLettersCounts.get(letter) >= count) {
+                        Toast.makeText(
+                                getContext(),
+                                getString(R.string.toast_not_enough_individual_letters) + letter + "'s",
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    appendLetterToWord(letter);
+                }
+            });
+        }
+
+        public void appendLetterToWord(String letter) {
+            editText.setText(editText.getText() + letter);
+            usedLettersCounts.put(letter, usedLettersCounts.get(letter)+1);
+        }
+
+        /**
+         *  Initialize the dictionary for user letters used to build a word in editText.
+         *
+         *  Used in order to prevent user using more letters than he/she has.
+         */
         private HashMap<String, Integer> initializeUserLettersCounts() {
             HashMap<String, Integer> map = new HashMap<>();
             for (char c = 'A'; c <= 'Z'; c++) {
@@ -139,6 +166,23 @@ public class BagActivity extends FragmentActivity {
             return map;
         }
 
+        /**
+         *  Submits the word for review
+         *
+         *  If the word does not consist of 7 letters,
+         *  notifies the user that only 7 letter words are acceptable
+         *  If the word is not in dictionary,
+         *  notifies the user.
+         *  Else:
+         *      1) get the submitted word score
+         *      2) get the number of times the word was collected
+         *      3) update user score
+         *      4) remove letters used for the word from the bag
+         *      5) update the number of times the word was collected
+         *      6) update user place (through remote server database)
+         *      7) check if unlocked any achievements
+         *      8) prepare view for another submission
+         */
         private void submitWord(String word) {
             Integer wordScore;
             Integer wordTimesCollected;
@@ -172,6 +216,10 @@ public class BagActivity extends FragmentActivity {
             }
         }
 
+        /**
+         *  Updates the letters adapter by getting unused letters from the updated database table,
+         *  clears the editText and notifies the user about successful word collection
+         */
         private void prepareWordCollectedView(String word) {
             lettersAdapter.changeCursor(dbHelper.getAllLetterCountsInBag(db));
             editText.setText("");
@@ -181,12 +229,18 @@ public class BagActivity extends FragmentActivity {
                     Toast.LENGTH_SHORT).show();
         }
 
+        /**
+         *  Sends the server updated user score and gets the updated user place
+         */
         private void updatePlace(Integer score) {
             UserUpdatePlaceTask userUpdatePlaceTask = new UserUpdatePlaceTask(getContext(), score);
             userUpdatePlaceTask.execute();
         }
 
-        private Integer updateScore(Integer wordScore) {
+        /**
+         *  Updates the user score by adding score of the collected word
+         */
+        protected Integer updateScore(Integer wordScore) {
             SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
             SharedPreferences.Editor editor = sharedPrefs.edit();
             Integer oldScore = sharedPrefs.getInt(
@@ -194,12 +248,12 @@ public class BagActivity extends FragmentActivity {
                     0);
             Integer newScore = oldScore + wordScore;
             editor.putInt(getString(R.string.pref_user_score_key), newScore);
-            editor.commit();
+            editor.apply();
             return newScore;
         }
 
         /**
-         * Update the number of times the word was collected
+         *  Update the number of times the word was collected
          */
         private void updateWordTimesCollected(String word, Integer wordTimesCollected) {
             ContentValues values = new ContentValues();
@@ -220,8 +274,8 @@ public class BagActivity extends FragmentActivity {
         }
 
         /**
-         * For every letter in a composed word, add usage_date indicating that
-         * the letter has been used.
+         *  For every letter in a composed word, add usage_date indicating that
+         *  the letter has been used.
          */
         private void removeLettersFromBag(String word) {
             for (char c : word.toCharArray()) {
@@ -242,6 +296,9 @@ public class BagActivity extends FragmentActivity {
             }
         }
 
+        /**
+         *  Returns the current time in specified format (yyyy-MM-dd HH:mm:ss) as a string
+         */
         private String getDateTime() {
             SimpleDateFormat dateFormat = new SimpleDateFormat(
                     getString(R.string.date_format), Locale.getDefault());
@@ -249,12 +306,18 @@ public class BagActivity extends FragmentActivity {
             return dateFormat.format(date);
         }
 
+        /**
+         *  If editText is not empty, deletes a single character from editText and
+         *  updates the usedLettersCount map by reducing the count of deleted letter
+         */
         private void deleteCharacter() {
             String text = editText.getText().toString();
             if (text.isEmpty()) return;
             editText.setText(text.substring(0, text.length()-1));
             String deletedCharacter = text.substring(text.length()-1);
-            usedLettersCounts.put(deletedCharacter, usedLettersCounts.get(deletedCharacter)-1);
+            if (usedLettersCounts.containsKey(deletedCharacter)) {
+                usedLettersCounts.put(deletedCharacter, usedLettersCounts.get(deletedCharacter) - 1);
+            }
         }
     }
 }
