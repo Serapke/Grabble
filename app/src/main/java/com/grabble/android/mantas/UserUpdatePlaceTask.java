@@ -2,9 +2,14 @@ package com.grabble.android.mantas;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import com.grabble.android.mantas.data.GrabbleDbHelper;
+import com.grabble.android.mantas.utils.AchievementsUtil;
+import com.grabble.android.mantas.utils.TaskUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -27,12 +31,23 @@ public class UserUpdatePlaceTask extends AsyncTask<Void, Void, Integer> {
 
     private final Integer score;
     private final Context context;
+    GrabbleDbHelper dbHelper;
+    SQLiteDatabase db;
+    private TaskUtil taskUtil;
 
     UserUpdatePlaceTask(Context context, Integer score) {
         this.score = score;
         this.context = context;
+        dbHelper = new GrabbleDbHelper(context);
+        db = dbHelper.getWritableDatabase();
+        this.taskUtil = new TaskUtil(context);
     }
 
+    /**
+     *  Sends a POST request to server with updated score.
+     *
+     *  If response code is 200, saves the updated user place.
+     */
     @Override
     protected Integer doInBackground(Void... params) {
 
@@ -40,6 +55,9 @@ public class UserUpdatePlaceTask extends AsyncTask<Void, Void, Integer> {
 
         Integer statusCode;
         JSONObject response;
+
+        // Checks if user is connected to any network
+        if (!taskUtil.isOnline()) return HttpURLConnection.HTTP_NOT_FOUND;
 
         try {
             HttpURLConnection urlConnection = setupHttpURLConnection();
@@ -57,11 +75,7 @@ public class UserUpdatePlaceTask extends AsyncTask<Void, Void, Integer> {
                 place = saveUserPlace(response);
             }
 
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
+        } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
 
@@ -88,11 +102,10 @@ public class UserUpdatePlaceTask extends AsyncTask<Void, Void, Integer> {
         StringBuilder sb = new StringBuilder();
         String line;
         while ((line = in.readLine()) != null) {
-            sb.append(line + "\n");
+            sb.append(line).append("\n");
         }
         in.close();
-        JSONObject json = new JSONObject(sb.toString());
-        return json;
+        return new JSONObject(sb.toString());
     }
 
     private Integer saveUserPlace(JSONObject json) throws JSONException {
@@ -102,7 +115,7 @@ public class UserUpdatePlaceTask extends AsyncTask<Void, Void, Integer> {
         editor.putString(context.getString(
                 R.string.pref_user_place_key),
                 place);
-        editor.commit();
+        editor.apply();
         return Integer.parseInt(place);
     }
 
@@ -115,9 +128,12 @@ public class UserUpdatePlaceTask extends AsyncTask<Void, Void, Integer> {
         out.flush();
     }
 
+    /**
+     *  Check if user can unlock any of the achievements related to user's place in leaderboard
+     */
     protected void onPostExecute(Integer place) {
         if (place != null) {
-            AchievementsUtil achv = new AchievementsUtil(context);
+            AchievementsUtil achv = new AchievementsUtil(context, db);
             achv.checkLeaderboardAchievements(place);
         }
     }

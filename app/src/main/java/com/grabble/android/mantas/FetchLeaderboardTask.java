@@ -6,6 +6,8 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.grabble.android.mantas.utils.TaskUtil;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,23 +30,29 @@ public class FetchLeaderboardTask extends AsyncTask<Void, Void, List<User>> {
 
     private final Context context;
     private LeaderboardAdapter leaderboardAdapter;
+    private TaskUtil taskUtil;
 
-    public FetchLeaderboardTask(Context context, LeaderboardAdapter leaderboardAdapter) {
+    FetchLeaderboardTask(Context context, LeaderboardAdapter leaderboardAdapter) {
         this.context = context;
         this.leaderboardAdapter = leaderboardAdapter;
+        this.taskUtil = new TaskUtil(context);
     }
 
+    /**
+     *  Connects to the server and if the response status code is 200, returns the updated
+     *  user list from the server. Else returns null and leaderboard adapter is not updated.
+     */
     @Override
     protected List<User> doInBackground(Void... params) {
-
         JSONArray response;
         Integer statusCode;
+        List<User> users = null;
 
-        List<User> users = new ArrayList<>();
+        // Checks if user is connected to any network
+        if (!taskUtil.isOnline()) return users;
 
         try {
             HttpURLConnection urlConnection = setupHttpURLConnection();
-
             statusCode = urlConnection.getResponseCode();
             Log.d(TAG, "Server responded with code: " + statusCode);
 
@@ -54,16 +62,17 @@ public class FetchLeaderboardTask extends AsyncTask<Void, Void, List<User>> {
                 Log.d(TAG, "Server responded with JSON: " + response.toString());
                 users = getLeaderboardDataFromJson(response);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
+        } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
 
         return users;
     }
 
-    private List<User> getLeaderboardDataFromJson(JSONArray response) throws JSONException {
+    /**
+     *  Given JSONArray with user information, parses it to a list of Users
+     */
+    protected List<User> getLeaderboardDataFromJson(JSONArray response) throws JSONException {
         List<User> leaderboardData = new ArrayList<>();
         for (int i = 0; i < response.length(); i++) {
             JSONObject userJson = response.getJSONObject(i);
@@ -78,26 +87,36 @@ public class FetchLeaderboardTask extends AsyncTask<Void, Void, List<User>> {
         return leaderboardData;
     }
 
+    /**
+     *  Setups HttpURLConnection to server with GET request method,
+     *  accepting JSON responses
+     */
     private HttpURLConnection setupHttpURLConnection() throws IOException {
         URL url = new URL(context.getString(R.string.server_get_leaderboard));
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-        urlConnection.setRequestMethod("GET");
         urlConnection.setRequestProperty("Accept", "application/json");
+        urlConnection.setRequestMethod("GET");
         return urlConnection;
     }
 
+    /**
+     *  Reads the stream from server response and converts it JSONArray object
+     *  for further parsing
+     */
     private JSONArray readStream(BufferedReader in) throws IOException, JSONException {
         StringBuilder sb = new StringBuilder();
         String line;
         while ((line = in.readLine()) != null) {
-            sb.append(line + "\n");
+            sb.append(line).append("\n");
         }
         in.close();
-        JSONArray json = new JSONArray(sb.toString());
-        return json;
+        return new JSONArray(sb.toString());
     }
 
+    /**
+     *  If the server responded with user leaderboard data, clears the leaderboard
+     *  adapter and fills it with new data. Also, updates the number of users preference.
+     */
     @Override
     protected void onPostExecute(List<User> result) {
         if (result != null && leaderboardAdapter != null) {
@@ -105,16 +124,19 @@ public class FetchLeaderboardTask extends AsyncTask<Void, Void, List<User>> {
             for (User user : result) {
                 leaderboardAdapter.add(user);
             }
+            updateNumberOfUsersPref(result.size());
         }
-        updateNumberOfUsersPref(result.size());
     }
 
-    private void updateNumberOfUsersPref(Integer size) {
+    /**
+     *  Given a new user count updates the corresponding default SharedPreferences entry
+     */
+    protected void updateNumberOfUsersPref(Integer size) {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(
                 context.getString(R.string.pref_number_of_users_key),
                 size.toString());
-        editor.commit();
+        editor.apply();
     }
 }
