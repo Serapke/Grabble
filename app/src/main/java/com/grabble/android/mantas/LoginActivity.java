@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -13,7 +12,9 @@ import android.widget.Button;
 import android.widget.EditText;
 
 /**
- * A login screen that offers login via email/password.
+ * A login screen that offers signup via nickname.
+ *
+ * Shown only when no user has signed up after the installation.
  */
 public class LoginActivity extends AppCompatActivity {
 
@@ -24,44 +25,38 @@ public class LoginActivity extends AppCompatActivity {
      */
     private UserLoginTask mAuthTask = null;
 
-    // UI references.
     private EditText nicknameView;
-    private Button loginButton;
+
+    String nickname;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
 
-        skipIfAlreadyLoggedIn();
-
-         setContentView(R.layout.activity_login);
-        // Set up the login form.
+        if (alreadyLoggedIn()) {
+            Intent intent = new Intent(this, MapsActivity.class);
+            startActivity(intent);
+            return;
+        }
+        Log.d(TAG, "Not already logged in");
+        setContentView(R.layout.activity_login);
 
         nicknameView = (EditText) findViewById(R.id.nickname);
-        loginButton = (Button) findViewById(R.id.sign_in_button);
+        Button loginButton = (Button) findViewById(R.id.sign_in_button);
 
         loginButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                attemptLogin();
-            }
-        });
-
-        Button mEmailSignInButton = (Button) findViewById(R.id.sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
+                nickname = nicknameView.getText().toString();
+                attemptLogin(nickname);
             }
         });
     }
 
-    private void skipIfAlreadyLoggedIn() {
+    protected boolean alreadyLoggedIn() {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-        if (sharedPrefs.contains(getString(R.string.pref_user_nickname_key))) {
-            Intent intent = new Intent(this, MapsActivity.class);
-            startActivity(intent);
-        }
+        return sharedPrefs.contains(getString(R.string.pref_user_nickname_key));
     }
 
     /**
@@ -69,7 +64,7 @@ public class LoginActivity extends AppCompatActivity {
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
-    private void attemptLogin() {
+    private void attemptLogin(String nickname) {
 
         if (mAuthTask != null) {
             Log.d(TAG, mAuthTask.toString());
@@ -79,18 +74,11 @@ public class LoginActivity extends AppCompatActivity {
         // Reset errors.
         nicknameView.setError(null);
 
-        // Store values at the time of the login attempt.
-        String nickname = nicknameView.getText().toString();
-
         boolean cancel = false;
         View focusView = null;
 
-        if (TextUtils.isEmpty(nickname) || !isNickNameSizeValid(nickname)) {
-            nicknameView.setError(getString(R.string.error_invalid_nickname_size));
-            focusView = nicknameView;
-            cancel = true;
-        } else if (!isNickNameCharactersValid(nickname)) {
-            nicknameView.setError(getString(R.string.error_invalid_nickname_characters));
+        if (!isNicknameValid(nickname)) {
+            nicknameView.setError(getString(R.string.error_invalid_nickname));
             focusView = nicknameView;
             cancel = true;
         }
@@ -110,12 +98,13 @@ public class LoginActivity extends AppCompatActivity {
         mAuthTask = null;
     }
 
-    private boolean isNickNameSizeValid(String nickname) {
-        return nickname.length() >= 4;
-    }
-
-    private boolean isNickNameCharactersValid(String nickname) {
-        String pattern= "^[a-zA-Z][a-zA-Z0-9]*$";
+    /**
+     *  A nickname must start with an uppercase letter, have at least 4 and at most 20 characters,
+     *  and consist of only alphanumeric characters.
+     */
+    protected boolean isNicknameValid(String nickname) {
+        if (nickname == null) return false;
+        String pattern = "^[a-zA-Z][a-zA-Z0-9]{3,19}$";
         return nickname.matches(pattern);
     }
 }

@@ -8,6 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+/**
+ *  Shows user the leaderboard and highlights his/her position in it
+ */
 public class LeaderboardActivity extends AppCompatActivity {
 
     @Override

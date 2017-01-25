@@ -14,13 +14,20 @@
     <!-- Strings related to login -->
     <string name="prompt_nickname">Nickname</string>
     <string name="action_sign_up">Sign Up</string>
-    <string name="error_invalid_nickname_size">This nickname should contain at least 4 letters!</string>
-    <string name="error_invalid_nickname_characters">The nickname should contain only letters or numbers and start with a letter.</string>
+    <string name="error_invalid_nickname">The nickname must contain from 4 to 20 alphanumeric characters and start with a letter.</string>
     <string name="error_cannot_connect_to_server">Error! Cannot connect to the server</string>
     <string name="error_nickname_already_exists">This nickname already exists</string>
     <string name="error_field_required">This field is required</string>
 
-    <!-- Strings related to JSON parsing -->
+    <!-- String related to letter map XML parsing -->
+    <string name="xml_file_format">kml</string>
+    <string name="xml_placemark_key">Placemark</string>
+    <string name="xml_placemark_name">name</string>
+    <string name="xml_placemark_description">description</string>
+    <string name="xml_placemark_point">Point</string>
+    <string name="xml_placemark_point_coordinates">coordinates</string>
+
+    <!-- Strings related to user JSON parsing -->
     <string name="json_user_key">user</string>
     <string name="json_user_id_key">id</string>
     <string name="json_user_nickname_key">nickname</string>

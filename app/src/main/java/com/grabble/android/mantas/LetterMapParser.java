@@ -1,5 +1,6 @@
 package com.grabble.android.mantas;
 
+import android.content.Context;
 import android.util.Xml;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -9,7 +10,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,31 +17,38 @@ import java.util.List;
  * Created by Mantas on 19/10/2016.
  */
 
+/**
+ *  Used to parse the response from letter map provider to List of Placemarks
+ *
+ *  Most of the code is taken from SELP lecture notes.
+ */
 public class LetterMapParser {
     private static final String ns = null;
 
-    public List parse(InputStream in) throws XmlPullParserException, IOException {
-        try {
-            XmlPullParser parser = Xml.newPullParser();
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(in, null);
-            parser.nextTag();
-            return readFeed(parser);
-        } finally {
-            in.close();
-        }
+    private Context context;
+
+    LetterMapParser(Context context) {
+        this.context = context;
     }
 
-    private List readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
-        List<Placemark> letters = new ArrayList<Placemark>();
+    List<Placemark> parse(InputStream in) throws XmlPullParserException, IOException {
+        XmlPullParser parser = Xml.newPullParser();
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+        parser.setInput(in, null);
+        parser.nextTag();
+        return readFeed(parser);
+    }
 
-        parser.require(XmlPullParser.START_TAG, ns, "kml");
+    private List<Placemark> readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
+        List<Placemark> letters = new ArrayList<>();
+
+        parser.require(XmlPullParser.START_TAG, ns, context.getString(R.string.xml_file_format));
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
             }
             String name = parser.getName();
-            if (name.equals("Placemark")) {
+            if (name.equals(context.getString(R.string.xml_placemark_key))) {
                 letters.add(readPlacemark(parser));
             } else {
                 skip(parser);
@@ -52,7 +59,7 @@ public class LetterMapParser {
     }
 
     private Placemark readPlacemark(XmlPullParser parser) throws XmlPullParserException, IOException {
-        parser.require(XmlPullParser.START_TAG, ns, "Placemark");
+        parser.require(XmlPullParser.START_TAG, ns, context.getString(R.string.xml_placemark_key));
         String name = null;
         char letter = ' ';
         LatLng coord = null;
@@ -61,11 +68,11 @@ public class LetterMapParser {
                 continue;
             }
             String tag = parser.getName();
-            if (tag.equals("name")) {
+            if (tag.equals(context.getString(R.string.xml_placemark_name))) {
                 name = readName(parser);
-            } else if (tag.equals("description")) {
+            } else if (tag.equals(context.getString(R.string.xml_placemark_description))) {
                 letter = readLetter(parser);
-            } else if (tag.equals("Point")) {
+            } else if (tag.equals(context.getString(R.string.xml_placemark_point))) {
                 coord = readCoord(parser);
             } else {
                 skip(parser);
@@ -75,22 +82,22 @@ public class LetterMapParser {
     }
 
     private String readName(XmlPullParser parser) throws IOException, XmlPullParserException {
-        parser.require(XmlPullParser.START_TAG, ns, "name");
+        parser.require(XmlPullParser.START_TAG, ns, context.getString(R.string.xml_placemark_name));
         String name = readText(parser);
-        parser.require(XmlPullParser.END_TAG, ns, "name");
+        parser.require(XmlPullParser.END_TAG, ns, context.getString(R.string.xml_placemark_name));
         return name;
     }
 
     private char readLetter(XmlPullParser parser) throws IOException, XmlPullParserException {
-        parser.require(XmlPullParser.START_TAG, ns, "description");
+        parser.require(XmlPullParser.START_TAG, ns, context.getString(R.string.xml_placemark_description));
         char letter = readText(parser).charAt(0);
-        parser.require(XmlPullParser.END_TAG, ns, "description");
+        parser.require(XmlPullParser.END_TAG, ns, context.getString(R.string.xml_placemark_description));
         return letter;
     }
 
     private LatLng readCoord(XmlPullParser parser) throws IOException, XmlPullParserException {
-        parser.require(XmlPullParser.START_TAG, ns, "Point");
-        LatLng placemark = null;
+        parser.require(XmlPullParser.START_TAG, ns, context.getString(R.string.xml_placemark_point));
+        LatLng placemark;
         String coordsString = null;
 
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -98,12 +105,13 @@ public class LetterMapParser {
                 continue;
             }
             String tag = parser.getName();
-            if (tag.equals("coordinates")) {
+            if (tag.equals(context.getString(R.string.xml_placemark_point_coordinates))) {
                 coordsString = readText(parser);
             } else {
                 skip(parser);
             }
         }
+        if (coordsString == null) return null;
         String[] coords = coordsString.split(",");
         double lng = Double.parseDouble(coords[0]);
         double lat = Double.parseDouble(coords[1]);

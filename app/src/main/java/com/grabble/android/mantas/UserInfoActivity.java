@@ -13,6 +13,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +26,13 @@ import android.widget.Toast;
 import com.grabble.android.mantas.data.GrabbleContract.DictionaryEntry;
 import com.grabble.android.mantas.data.GrabbleDbHelper;
 
+
+/**
+ *  Shows User stats, Achievements and Words tabs and corresponding functionality.
+ */
 public class UserInfoActivity extends AppCompatActivity {
+    private static final String TAG = MapsActivity.class.getSimpleName();
+
     UserInfoPagerAdapter userInfoPagerAdapter;
 
     ViewPager viewPager;
@@ -122,6 +129,9 @@ public class UserInfoActivity extends AppCompatActivity {
             return String.format("%d letters", lettersCount);
         }
 
+        /**
+         *  Returns te best word user has collected.
+         */
         private String getBestWordText() {
             String result;
             Cursor cursor = dbHelper.getBestWord(db);

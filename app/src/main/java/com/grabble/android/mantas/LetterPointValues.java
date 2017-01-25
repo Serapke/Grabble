@@ -7,6 +7,9 @@ import java.util.Map;
  * Created by Mantas on 08/01/2017.
  */
 
+/**
+ *  Enum corresponding to the letter point values table in the coursework description
+ */
 public enum LetterPointValues {
 
     A('A', 3),
@@ -46,7 +49,7 @@ public enum LetterPointValues {
         }
     }
 
-    private LetterPointValues(Character letter, Integer value) {
+    LetterPointValues(Character letter, Integer value) {
         this.letter = letter;
         this.value = value;
     }

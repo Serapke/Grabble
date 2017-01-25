@@ -80,6 +80,10 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         initializeAchievements(db);
     }
 
+    /**
+     *  Populates achievements table with achievements and corresponding icons.
+     *  Done on installation of the application.
+     */
     private void initializeAchievements(SQLiteDatabase db) {
         HashMap<String, Integer> achievements = new HashMap<>();
         achievements.put(context.getString(R.string.achievement_same_word), R.drawable.achievement_same_word);
@@ -123,7 +127,7 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
     private void initializeDictionary(SQLiteDatabase db) {
         Scanner s;
         try {
-            s = new Scanner(context.getAssets().open(String.format(context.getString(R.string.dictionary_filename))));
+            s = new Scanner(context.getAssets().open(context.getString(R.string.dictionary_filename)));
             while (s.hasNext()) {
                 String word  = s.next().toUpperCase();
                 ContentValues values = new ContentValues();
@@ -133,13 +137,15 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
                 db.insert(DictionaryEntry.TABLE_NAME, null, values);
             }
             s.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     *  Calculates the score for a given word depending on the values copied from course
+     *  description.
+     */
     private Integer getWordScore(String word) {
         Integer sum = 0;
         for (Character c : word.toCharArray()) {
@@ -162,6 +168,10 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
+    /**
+     *  Gets all distinct letters from bag table with corresponding number of appearances
+     *  in the table as count.
+     */
     public Cursor getAllLetterCountsInBag(SQLiteDatabase db) {
         String query =
                 "SELECT " + BagEntry._ID + ", " +
@@ -170,11 +180,15 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
                 "FROM " + BagEntry.TABLE_NAME +
                 " WHERE " + BagEntry.COLUMN_NAME_USAGE_DATE + " IS NULL" +
                 " GROUP BY " + BagEntry.COLUMN_NAME_LETTER + ";";
-        Cursor cursor = db.rawQuery(query, null);
 
-        return cursor;
+        return db.rawQuery(query, null);
     }
 
+    /**
+     *  Gets the number of distinct letters in the bag table.
+     *
+     *  Max result = 26 (the user has all alphabet in the bag)
+     */
     public Integer getDistinctLettersCount(SQLiteDatabase db) {
         Integer result;
         String selection = BagEntry.COLUMN_NAME_USAGE_DATE + " IS NULL";
@@ -192,6 +206,9 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         return result;
     }
 
+    /**
+     *  Gets the number of letters (not distinct) in the bag.
+     */
     public Integer getLettersCount(SQLiteDatabase db) {
         Integer result;
         String selection = BagEntry.COLUMN_NAME_USAGE_DATE + " IS NULL";
@@ -209,14 +226,16 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         return result;
     }
 
+    /**
+     *  Gets the letters collected today from 12PM.
+     */
     public Cursor getLettersCollectedToday(SQLiteDatabase db) {
         String query =
                 "SELECT * FROM " + BagEntry.TABLE_NAME +
                 " WHERE DATE(" + BagEntry.COLUMN_NAME_COLLECTION_DATE + ")" +
                 " >= DATE('now', 'start of day');";
-        Cursor cursor = db.rawQuery(query, null);
 
-        return cursor;
+        return db.rawQuery(query, null);
     }
 
     public Long getFirstUnusedLetterID(SQLiteDatabase db, String letter) {
@@ -239,24 +258,24 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         return cursor.getLong(cursor.getColumnIndex(BagEntry._ID));
     }
 
-
+    /**
+     *  Gets the selected word from the dictionary table.
+     *
+     *  If there is more than one, returns all.
+     */
     public Cursor getWord(SQLiteDatabase db, String word) {
         String selection = DictionaryEntry.COLUMN_WORD + " = ?";
         String[] selectionArgs = { word };
 
-        Cursor cursor = db.query(
-                DictionaryEntry.TABLE_NAME,
-                null,
-                selection,
-                selectionArgs,
-                null,
-                null,
-                null
-        );
-
-        return cursor;
+        return db.query(DictionaryEntry.TABLE_NAME, null, selection, selectionArgs, null, null, null);
     }
 
+    /**
+     *  Checks if at least one instance of the selected word is in the dictionary table.
+     *
+     *  Can be multiple identical words because of alternating cases (some words start with
+     *  lowercase letter, some with uppercase)
+     */
     public boolean isValidWord(SQLiteDatabase db, String word) {
         Cursor cursor = getWord(db, word);
 
@@ -264,6 +283,12 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         return cursor.getCount() > 0;
     }
 
+    /**
+     *  Gets the number of times a selected words has been collected.
+     *
+     *  If the word is found in multiple places in the dictionary table, checks only
+     *  the first one (explanation in documentation).
+     */
     public Integer getNumberOfTimesWordWasCollected(SQLiteDatabase db, String word) {
         Cursor cursor = getWord(db, word);
         cursor.moveToFirst();
@@ -271,6 +296,9 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         return cursor.getInt(cursor.getColumnIndex(DictionaryEntry.COLUMN_TIMES_COLLECTED));
     }
 
+    /**
+     *  Gets the selected word's score.
+     */
     public Integer getWordScore(SQLiteDatabase db, String word) {
         Cursor cursor = getWord(db, word);
         cursor.moveToFirst();
@@ -282,17 +310,7 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         String selection = DictionaryEntry.COLUMN_TIMES_COLLECTED + " > ?";
         String[] selectionArgs = { "0" };
 
-        Cursor cursor = db.query(
-                DictionaryEntry.TABLE_NAME,
-                null,
-                selection,
-                selectionArgs,
-                null,
-                null,
-                null
-        );
-
-        return cursor;
+        return db.query(DictionaryEntry.TABLE_NAME, null, selection, selectionArgs, null, null, null);
     }
 
     public Integer getCollectedWordsCount(SQLiteDatabase db) {
@@ -306,6 +324,9 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         return cursor.getInt(cursor.getColumnIndex(context.getString(R.string.column_count)));
     }
 
+    /**
+     *  Gets the word with the highest score.
+     */
     public Cursor getBestWord(SQLiteDatabase db) {
         String query =
                 "SELECT * FROM " + DictionaryEntry.TABLE_NAME +
@@ -313,10 +334,14 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
                 " ORDER BY " + DictionaryEntry.COLUMN_SCORE + " DESC;";
         String[] selectionArgs = { "0" };
 
-        Cursor cursor = db.rawQuery(query, selectionArgs);
-        return cursor;
+        return db.rawQuery(query, selectionArgs);
     }
 
+    /**
+     *  Gets the achievement with selected title.
+     *
+     *  Returns Achievement object.
+     */
     public Achievement getAchievement(SQLiteDatabase db, String title) {
         String selection = AchievementsEntry.COLUMN_TITLE + " = ?";
         String[] selectionArgs = { title };
@@ -337,6 +362,9 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         return new Achievement(title, imageId, unlocked==1);
     }
 
+    /**
+     *  Unlocks the achievement with the selected title.
+     */
     public void unlockAchievement(SQLiteDatabase db, String title) {
         ContentValues values = new ContentValues();
         values.put(AchievementsEntry.COLUMN_UNLOCKED, 1);
@@ -373,11 +401,16 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
         return result;
     }
 
+    /**
+     *  Gets the count of all achievements (both locked and unlocked)
+     */
     public Long getAchievementsCount(SQLiteDatabase db) {
-        Long count = DatabaseUtils.queryNumEntries(db, AchievementsEntry.TABLE_NAME);
-        return count;
+        return DatabaseUtils.queryNumEntries(db, AchievementsEntry.TABLE_NAME);
     }
 
+    /**
+     *  Gets all the letters collected at night (between 22PM and 6AM)
+     */
     public Integer getLettersCollectedAtNightCount(SQLiteDatabase db) {
         String query =
                 "SELECT * FROM " + BagEntry.TABLE_NAME +
@@ -388,5 +421,4 @@ public class GrabbleDbHelper extends SQLiteOpenHelper {
 
         return cursor.getCount();
     }
-
 }
