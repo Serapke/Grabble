@@ -15,12 +15,10 @@ import java.util.List;
  */
 
 public class AchievementsAdapter extends BaseAdapter {
-    private Context context;
     private LayoutInflater inflater;
-    public List<Achievement> achievements;
+    private List<Achievement> achievements;
 
-    public AchievementsAdapter(Context c, List<Achievement> achievements, Long size) {
-        this.context = c;
+    public AchievementsAdapter(Context context, List<Achievement> achievements, Long size) {
         this.inflater = LayoutInflater.from(context);
         this.achievements = achievements;
         // Show 'Lock' for locked achievements
@@ -51,7 +49,7 @@ public class AchievementsAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.achievement_layout, parent, false);
             holder = new ViewHolder();
-            holder.text = (TextView) convertView.findViewById(R.id.achievement_title);
+            holder.title = (TextView) convertView.findViewById(R.id.achievement_title);
             holder.icon = (ImageView) convertView.findViewById(R.id.achievement_image);
 
             convertView.setTag(holder);
@@ -59,7 +57,7 @@ public class AchievementsAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        holder.text.setText(achievements.get(position).getTitle());
+        holder.title.setText(achievements.get(position).getTitle());
         holder.icon.setImageResource(achievements.get(position).getImageId());
 
         return convertView;
@@ -69,8 +67,8 @@ public class AchievementsAdapter extends BaseAdapter {
      * Using ViewHolder for performance reasons.
      * More info: https://dl.google.com/googleio/2010/android-world-of-listview-android.pdf
      */
-    static class ViewHolder {
-        TextView text;
+    private static class ViewHolder {
+        TextView title;
         ImageView icon;
     }
 }
