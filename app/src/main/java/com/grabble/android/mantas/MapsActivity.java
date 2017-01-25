@@ -245,25 +245,21 @@ public class MapsActivity extends AppCompatActivity implements
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-            // Check if the marker clicked is not the user location marker
-            if (marker.getId().equals(userLocationMarker.getId()))
-                return false;
+                // Check if the marker clicked is not the user location marker
+                if (marker.getId().equals(userLocationMarker.getId()))
+                    return false;
 
-            double distance = SphericalUtil.computeDistanceBetween(
-                    marker.getPosition(),
-                    userLocationMarker.getPosition());
-            Log.d(TAG, "User tried to collect a letter from " + distance + " meter distance");
             /*
              * If the marker is visible on the screen, user can collect the corresponding
              * letter.
              */
-            LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
-            if (bounds.contains(marker.getPosition())) {
-                collectLetter(marker);
-            } else {
-                Toast.makeText(MapsActivity.this, "You are too far from the letter!", Toast.LENGTH_SHORT).show();
-            }
-            return true;
+                LatLngBounds bounds = map.getProjection().getVisibleRegion().latLngBounds;
+                if (bounds.contains(marker.getPosition())) {
+                    collectLetter(marker);
+                } else {
+                    Toast.makeText(MapsActivity.this, "You are too far from the letter!", Toast.LENGTH_SHORT).show();
+                }
+                return true;
             }
         });
     }
