@@ -8,6 +8,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.grabble.android.mantas.data.GrabbleDbHelper;
+import com.grabble.android.mantas.utils.AchievementsUtil;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,11 +25,11 @@ import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
 @SmallTest
-public class AndroidAchievementsUtilTest {
-    Context context;
-    AchievementsUtil achv;
-    GrabbleDbHelper dbHelper;
-    SQLiteDatabase db;
+public class AchievementsUtilTest {
+    private Context context;
+    private AchievementsUtil achv;
+    private GrabbleDbHelper dbHelper;
+    private SQLiteDatabase db;
 
     private static final LatLng NEAR_STARBUCKS_POSITION = new LatLng(55.944039, -3.191871);
     private static final LatLng NEAR_FORREST_HILL_POSITION = new LatLng(55.946039, -3.192269);
@@ -40,7 +41,6 @@ public class AndroidAchievementsUtilTest {
     private static final Calendar EASTER_DATE = new GregorianCalendar(2017, Calendar.APRIL, 16);
     private static final Calendar CHRISTMAS_DATE = new GregorianCalendar(2017, Calendar.DECEMBER, 25);
 
-    private static final Double DISTANCE_FROM_LANDMARK = 50.00;
     private static final Integer NIGHT_LETTERS_LIMIT = 20;
     private static final Integer ALPHABET_SIZE = 26;
     private static final Integer WORDS_COLLECTED_COUNT = 100;
